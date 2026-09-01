@@ -566,7 +566,7 @@
                              type === 'warning' ? '<i class="fa-solid fa-exclamation text-orange-600 text-xl"></i>' :
                              '<i class="fa-solid fa-circle-info text-blue-800 text-xl"></i>';
             icon.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 border ${type==='error'?'bg-red-100 border-red-200': type==='warning'?'bg-orange-100 border-orange-200':'bg-blue-100 border-blue-200'}`;
-            btnOk.className = `w-full inline-flex justify-center rounded-lg shadow-sm px-4 py-2 text-base font-bold text-white focus:outline-none transition border border-transparent ${type==='error'?'bg-red-600 hover:bg-red-700': type==='warning'?'bg-orange-600 hover:bg-orange-700':'bg-blue-800 hover:bg-blue-900'}`;
+            btnOk.className = `w-full inline-flex justify-center rounded-lg shadow-sm px-4 py-2 bg-blue-800 text-base font-bold text-white hover:bg-blue-900 focus:outline-none transition border border-transparent ${type==='error'?'bg-red-600 hover:bg-red-700': type==='warning'?'bg-orange-600 hover:bg-orange-700':'bg-blue-800 hover:bg-blue-900'}`;
 
             if(showCancel) {
                 btnCancel.classList.remove('hidden');
@@ -1002,8 +1002,6 @@
                 try {
                     fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
-                        mode: 'no-cors', 
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             action: 'saveData',
                             itemId: itemId,
@@ -1341,8 +1339,6 @@
                 try {
                     fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             action: 'register',
                             data: payload
