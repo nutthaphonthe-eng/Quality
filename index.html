@@ -180,7 +180,7 @@
                 <div class="flex items-center gap-3">
                     <div id="navBreadcrumb" class="font-bold text-lg leading-tight flex items-center gap-2">
                         <i class="fa-solid fa-award text-amber-400 text-xl"></i> 
-                        <span>ระบบประเมินตนเองของสถานศึกษาเพื่อรองรับการประเมินสถานศึกษารางวัลพระราชทาน 4 ปี</span>
+                        <span>ระบบประเมินสถานศึกษา 4 ปี</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -737,7 +737,7 @@
             currentActiveYear = null;
             document.getElementById('view-assessment').classList.remove('active');
             document.getElementById('view-dashboard').classList.add('active');
-            document.getElementById('navBreadcrumb').innerHTML = `<i class="fa-solid fa-award text-amber-400 text-xl"></i> <span>ระบบประเมินตนเองของสถานศึกษาเพื่อรองรับการประเมินสถานศึกษารางวัลพระราชทาน 4 ปี</span>`;
+            document.getElementById('navBreadcrumb').innerHTML = `<i class="fa-solid fa-award text-amber-400 text-xl"></i> <span>ระบบประเมินสถานศึกษา 4 ปี</span>`;
         };
 
         function renderAssessmentUI() {
@@ -1066,6 +1066,7 @@
                 try {
                     fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({
                             action: 'saveData',
                             year: currentActiveYear,
@@ -1157,6 +1158,7 @@
                     try {
                         const response = await fetch(GAS_WEB_APP_URL, {
                             method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify({
                                 action: 'upload',
                                 year: currentActiveYear,
@@ -1173,12 +1175,24 @@
                             await saveData(itemId, { fileName: file.name, storagePath: 'GoogleDrive', link: result.url, workflow_status: multiYearDataStore[currentActiveYear][itemId]?.workflow_status || 'draft' });
                             isUploading[itemId] = false; 
                             input.value = '';
+                            refreshAssessmentUI(); // บังคับอัปเดตหน้าจอ
                             return; 
                         } else { 
                             throw new Error(result.message); 
                         }
                     } catch (e) {
-                         console.warn("GAS Upload Error, fallback to standard upload.", e);
+                         console.warn("GAS Upload Error", e);
+                         // แสดงกล่องแจ้งเตือนแทนการเงียบหายไป
+                         let errorMsg = e.message;
+                         if(errorMsg.includes('Failed to fetch')) {
+                             errorMsg = "เบราว์เซอร์ของคุณบล็อกการเชื่อมต่อ (CORS / Tracking Prevention) กรุณาลองใช้ Google Chrome หรือตรวจสอบการตั้งค่า Deploy ของ Google Apps Script ว่าตั้ง 'ผู้ที่มีสิทธิ์เข้าถึง' เป็น 'ทุกคน' แล้วหรือไม่";
+                         }
+                         showModal("อัปโหลดไม่สำเร็จ", `ระบบ Google Drive ปฏิเสธการรับไฟล์:<br><br><span class="text-red-500 font-mono text-[11px]">${errorMsg}</span>`, "error");
+                         
+                         isUploading[itemId] = false; 
+                         input.value = '';
+                         refreshAssessmentUI();
+                         return; // หยุดการทำงานทันที
                     }
                 }
 
@@ -1197,9 +1211,10 @@
             } catch (error) {
                 console.warn("Storage upload fallback:", error);
                 await saveData(itemId, { fileName: file.name, workflow_status: multiYearDataStore[currentActiveYear][itemId]?.workflow_status || 'draft' });
-                showToast("บันทึกชื่อไฟล์สำเร็จ (ไม่ได้ส่งขึ้นคลาวด์ เนื่องจากอยู่ในโหมด Offline)", false);
+                showToast("บันทึกชื่อไฟล์สำเร็จ (ไม่ได้ส่งขึ้นคลาวด์)", false);
             } finally {
                 isUploading[itemId] = false; input.value = '';
+                refreshAssessmentUI();
             }
         };
 
@@ -1216,7 +1231,7 @@
             
             let statusText = data.status === 's' ? '<span style="color: #16a34a; font-weight: bold;">สมบูรณ์ (พร้อมรับการประเมิน)</span>' : data.status === 'k' ? '<span style="color: #d97706; font-weight: bold;">กำลังดำเนินการ</span>' : data.status === 'm' ? '<span style="color: #dc2626; font-weight: bold;">ไม่มีหลักฐาน</span>' : '<span style="color: #94a3b8;">ยังไม่ได้ประเมิน</span>';
             let wfText = data.workflow_status === 'approved' ? '<span style="color: #16a34a; font-weight: bold;">อนุมัติแล้ว (ผ่านเกณฑ์)</span>' : data.workflow_status === 'pending' ? '<span style="color: #d97706; font-weight: bold;">รอตรวจสอบจากคณะกรรมการ</span>' : data.workflow_status === 'rejected' ? `<span style="color: #dc2626; font-weight: bold;">ต้องแก้ไข</span> <br><span style="font-size: 12px;">(เหตุผล: ${data.rejectComment || '-'})</span>` : '<span style="color: #94a3b8;">ฉบับร่าง (Draft)</span>';
-            
+
             let safeLink = '-';
             if (data.link) {
                 try {
@@ -1314,10 +1329,67 @@
         };
 
         window.openRegisterModal = function() {
-            showModal("ข้อมูลผู้ดูแลระบบ", "เนื่องจากข้อบังคับด้านความปลอดภัย การสมัครสมาชิกและการเปิดสิทธิ์ให้ครูแต่ละแผนกในเวอร์ชันนี้ จะต้องให้ผู้ดูแลระบบไอทีของวิทยาลัยเป็นผู้เพิ่มข้อมูลให้ในฐานข้อมูล Firebase โดยตรงครับ", "warning");
+            document.getElementById('registerModal').classList.add('active');
         };
 
-        window.closeRegisterModal = function() { document.getElementById('registerModal').classList.remove('active'); };
+        window.closeRegisterModal = function() { 
+            document.getElementById('registerModal').classList.remove('active'); 
+        };
+
+        window.submitRegistration = async function() {
+            const fullname = document.getElementById('regFullname').value.trim();
+            const position = document.getElementById('regPosition').value.trim();
+            const dept = document.getElementById('regDept').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+
+            if (!fullname || !position || !dept || !email || !username || !password) {
+                showModal("ข้อมูลไม่ครบถ้วน", "กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน", "warning");
+                return;
+            }
+
+            const payload = { fullname, position, dept, email, username, password, indicators: [] };
+
+            try {
+                // ส่งข้อมูลไปบันทึกที่ Google Apps Script
+                if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL !== "") {
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'register',
+                            data: payload
+                        })
+                    }).catch(e => console.warn("Google Sheets Sync Error"));
+                }
+
+                // บันทึกแบบ Local เพื่อให้สามารถ Login หน้าเว็บได้ทันที
+                let users = JSON.parse(localStorage.getItem('royalAwardUsers')) || [];
+                if(users.some(u => u.username === username)) {
+                    showModal("ข้อผิดพลาด", "Username นี้ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น", "error");
+                    return;
+                }
+                users.push(payload);
+                localStorage.setItem('royalAwardUsers', JSON.stringify(users));
+
+                closeRegisterModal();
+                showModal("สมัครเข้าใช้งานสำเร็จ", "ระบบได้บันทึกข้อมูลของคุณลงใน Google Sheets เรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบได้ทันที", "info");
+                
+                // เคลียร์ฟอร์ม
+                document.getElementById('regFullname').value = '';
+                document.getElementById('regPosition').value = '';
+                document.getElementById('regDept').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regUsername').value = '';
+                document.getElementById('regPassword').value = '';
+
+            } catch (e) {
+                console.error(e);
+                showModal("ข้อผิดพลาด", "เกิดปัญหาในการส่งข้อมูลไปฐานข้อมูล", "error");
+            }
+        };
+
         window.openForgotPassModal = function() { showModal('ลืมรหัสผ่าน', 'กรุณาติดต่อผู้ดูแลระบบ (Admin) ภายในสถานศึกษาเพื่อทำการรีเซ็ตรหัสผ่านครับ'); };
         window.closeForgotPassModal = function() { document.getElementById('forgotPassModal').classList.remove('active'); };
 
