@@ -282,9 +282,15 @@
         // Global State & Config
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-        let firebaseConfig = {// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+        let firebaseConfig = {
+  apiKey: "AIzaSyAu0n6DKp1JuVZCZudR7KRHfe27skrlGu0",
+  authDomain: "quality12-cd8ea.firebaseapp.com",
+  projectId: "quality12-cd8ea",
+  storageBucket: "quality12-cd8ea.firebasestorage.app",
+  messagingSenderId: "3509201975",
+  appId: "1:3509201975:web:f2beaf7b47e071dab1e3b2",
+  measurementId: "G-1JK4DKN6TR"
+};
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
