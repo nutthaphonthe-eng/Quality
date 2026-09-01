@@ -180,7 +180,7 @@
                 <div class="flex items-center gap-3">
                     <div id="navBreadcrumb" class="font-bold text-lg leading-tight flex items-center gap-2">
                         <i class="fa-solid fa-award text-amber-400 text-xl"></i> 
-                        <span>ระบบประเมินตนเองของสถานศึกษาเพื่อรองรับการประเมินสถานศึกษารางวัลพระราขทาน 4 ปี</span>
+                        <span>ระบบประเมินตนเองของสถานศึกษาเพื่อรองรับการประเมินสถานศึกษารางวัลพระราชทาน 4 ปี</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -252,7 +252,7 @@
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // ==========================================
-        // Firebase Config (Clean & Fixed)
+        // Firebase Config
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAu0n6DKp1JuVZCZudR7KRHfe27skrlGu0",
@@ -265,7 +265,7 @@
         };
 
         // ==========================================
-        // Google Apps Script Web App URL (Updated)
+        // Google Apps Script Web App URL
         // ==========================================
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0cpCBcMqPj55xiI23Fv8B6YlZDeIBQ3Osb3kFsI336ygtbfwpyxpXpMRQyRzkoHU/exec";
 
@@ -349,7 +349,7 @@
                         ]
                     },
                     {
-                        title: "2.4 การพัฒนากิจการนักเรียน นักศึกษา",
+                        title: "2.4 การพัฒกากิจการนักเรียน นักศึกษา",
                         items: [
                             { id: "2_4_1", type: "ประจักษ์", topic: "การจัดกิจกรรมเพื่อส่งเสริมทักษะทางวิชาการหรือวิชาชีพ", level4: "สำรวจความต้องการ จัดชุมนุมหลากหลาย กิจกรรมน่าสนใจ มีครูเชี่ยวชาญ นักเรียนร่วมด้วยความพอใจ มีผลงานชัดเจน", methods: "แผนงานกิจกรรมชุมนุม, ผลงานชุมนุม" },
                             { id: "2_4_2", type: "ประจักษ์", topic: "การจัดกิจกรรมเพื่อส่งเสริมคุณลักษณะอันพึงประสงค์", level4: "มีนโยบายชัดเจน จัดกิจกรรมหลากหลาย มีข้อกำหนดประเมินชัดเจน บรรลุตามเป้าหมาย", methods: "โครงการคุณธรรมจริยธรรม" },
@@ -737,7 +737,7 @@
             currentActiveYear = null;
             document.getElementById('view-assessment').classList.remove('active');
             document.getElementById('view-dashboard').classList.add('active');
-            document.getElementById('navBreadcrumb').innerHTML = `<i class="fa-solid fa-award text-amber-400 text-xl"></i> <span>ระบบประเมินตนเองของสถานศึกษาเพื่อรองรับการประเมินสถานศึกษารางวัลพระราขทาน 4 ปี</span>`;
+            document.getElementById('navBreadcrumb').innerHTML = `<i class="fa-solid fa-award text-amber-400 text-xl"></i> <span>ระบบประเมินตนเองของสถานศึกษาเพื่อรองรับการประเมินสถานศึกษารางวัลพระราชทาน 4 ปี</span>`;
         };
 
         function renderAssessmentUI() {
@@ -1061,10 +1061,9 @@
             if(!yearData[itemId]) yearData[itemId] = {};
             multiYearDataStore[currentActiveYear][itemId] = { ...yearData[itemId], ...payload };
 
-            // 1. Save to Google Apps Script (if configured)
+            // 1. Save to Google Apps Script
             if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL !== "") {
                 try {
-                    // Send as simple POST to avoid preflight
                     fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         body: JSON.stringify({
@@ -1080,7 +1079,7 @@
                 }
             }
 
-            // 2. Save to Firebase or Local (Offline)
+            // 2. Save to Firebase or Local
             if(isOfflineMode) {
                 localStorage.setItem('royalAwardV6OfflineMulti', JSON.stringify(multiYearDataStore));
                 updateDOMForItem(itemId, multiYearDataStore[currentActiveYear][itemId]);
