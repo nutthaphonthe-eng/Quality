@@ -1009,7 +1009,6 @@ const analytics = getAnalytics(app);};
             if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL !== "") {
                 fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // ทำงานอยู่เบื้องหลัง ไม่รบกวนหน้าเว็บ
                     body: JSON.stringify({
                         action: 'saveData',
                         itemId: itemId,
@@ -1342,7 +1341,6 @@ const analytics = getAnalytics(app);};
             if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL !== "") {
                 fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     body: JSON.stringify({
                         action: 'register',
                         data: payload
@@ -2159,8 +2157,6 @@ const analytics = getAnalytics(app);};
                 try {
                     fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
-                        mode: 'no-cors', 
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             action: 'saveData',
                             itemId: itemId,
@@ -2498,8 +2494,6 @@ const analytics = getAnalytics(app);};
                 try {
                     fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             action: 'register',
                             data: payload
