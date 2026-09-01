@@ -29,7 +29,7 @@
 
         /* Custom Toast */
         #toast {
-            visibility: hidden; min-width: 250px; background-color: #1e3a8a; border: 1px solid #fbbf24; color: #fff; text-align: center;
+            visibility: hidden; min-width: 250px; background-color: #1e293b; color: #fff; text-align: center;
             border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px;
             transform: translateX(-50%) translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 8px; justify-content: center;
@@ -59,10 +59,1322 @@
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased overflow-hidden bg-slate-50">
+<body class="text-slate-800 antialiased overflow-hidden">
 
     <!-- Custom Dialog Modal -->
     <div id="customModal" class="modal-backdrop">
+        <div class="modal-box bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 relative overflow-hidden hide-scroll">
+            <div id="modalHeader" class="h-2 w-full absolute top-0 left-0 bg-blue-500"></div>
+            <div class="text-center mt-2">
+                <div id="modalIcon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                    <i class="fa-solid fa-circle-info text-blue-600 text-xl"></i>
+                </div>
+                <h3 id="modalTitle" class="text-lg leading-6 font-bold text-gray-900 mb-2">ข้อความแจ้งเตือน</h3>
+                <div class="mt-2 px-2">
+                    <p id="modalMessage" class="text-sm text-gray-500"></p>
+                </div>
+            </div>
+            <div id="modalActions" class="mt-6 flex gap-3 justify-center">
+                <button id="modalBtnOk" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm transition">ตกลง</button>
+                <button id="modalBtnCancel" class="hidden w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm transition">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Report Modal -->
+    <div id="printModal" class="modal-backdrop">
+        <div class="modal-box bg-white rounded-2xl shadow-2xl p-6 max-w-4xl w-full mx-4 relative overflow-hidden flex flex-col h-[85vh]">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-3">
+                <h3 id="printModalTitle" class="text-xl font-bold text-slate-800"><i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i>รายงานสรุปภาพรวม 88 ตัวชี้วัด</h3>
+                <button onclick="document.getElementById('printModal').classList.remove('active')" class="text-slate-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="printContent" class="flex-1 overflow-y-auto hide-scroll p-2 text-sm">
+                <!-- Report Content Injected Here -->
+            </div>
+            <div class="mt-4 pt-4 border-t border-slate-200 flex justify-end gap-3">
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> พิมพ์เอกสาร (Print)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"><i id="toastIcon" class="fa-solid fa-circle-check text-green-400"></i><span id="toast-msg"></span></div>
+
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="modal-backdrop active" style="z-index: 10000;">
+        <div class="modal-box bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-slate-100">
+            <div class="bg-gradient-to-r from-blue-800 to-indigo-900 p-8 text-white text-center relative">
+                <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+                    <i class="fa-solid fa-shield-halved text-9xl absolute -top-4 -right-4 transform rotate-12"></i>
+                </div>
+                <i class="fa-solid fa-award text-5xl mb-4 relative z-10 text-yellow-400"></i>
+                <h2 class="text-xl sm:text-2xl font-bold relative z-10 mb-4">ระบบประเมินตนเองเพื่อรับการประเมินสถานศึกษารางวัลพระราชทาน<br>วิทยาลัยอาชีวศึกษาชลบุรี</h2>
+            </div>
+            <div class="p-8">
+                <div id="loginError" class="hidden mb-4 bg-red-50 border-l-4 border-red-500 p-3 text-sm text-red-700 rounded shadow-sm">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> <span id="loginErrorMsg">Username หรือ Password ไม่ถูกต้อง</span>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">ชื่อผู้ใช้งาน (Username)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-user text-slate-400"></i>
+                        </div>
+                        <input type="text" id="loginUsername" placeholder="กรอก Username" class="w-full border border-slate-300 rounded-lg pl-10 p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-slate-50">
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">รหัสผ่าน (Password)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-slate-400"></i>
+                        </div>
+                        <input type="password" id="loginPassword" placeholder="กรอก Password" class="w-full border border-slate-300 rounded-lg pl-10 p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-slate-50" onkeypress="if(event.key === 'Enter') performLogin()">
+                    </div>
+                </div>
+                <button onclick="performLogin()" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition flex justify-center items-center gap-2 mb-5">
+                    <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
+                </button>
+                <div class="flex justify-between items-center text-sm border-t border-slate-200 pt-4">
+                    <button onclick="openRegisterModal()" class="text-blue-600 hover:text-blue-800 font-bold transition flex items-center gap-1"><i class="fa-solid fa-user-plus"></i> สมัครเข้าใช้งาน</button>
+                    <button onclick="openForgotPassModal()" class="text-slate-500 hover:text-slate-700 font-medium transition">ลืมรหัสผ่าน?</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal-backdrop overflow-y-auto" style="z-index: 10001; align-items: flex-start; padding: 20px 0;">
+        <div class="modal-box bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full mx-auto relative my-8">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <h3 class="text-xl font-bold text-slate-800"><i class="fa-solid fa-user-plus text-blue-600 mr-2"></i>สมัครเข้าใช้งานระบบ</h3>
+                <button onclick="closeRegisterModal()" class="text-slate-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label><input type="text" id="regFullname" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">ตำแหน่ง <span class="text-red-500">*</span></label><input type="text" id="regPosition" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">แผนกวิชา <span class="text-red-500">*</span></label>
+                    <input type="text" id="regDept" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <p class="text-[9px] text-slate-500 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>กรณีเจ้าหน้าที่ให้ระบุงานที่รับผิดชอบ</p>
+                </div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">หน้าที่พิเศษ</label><input type="text" id="regSpecialDuty" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">E-mail <span class="text-red-500">*</span></label><input type="email" id="regEmail" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">เบอร์ติดต่อ <span class="text-red-500">*</span></label><input type="tel" id="regPhone" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"></div>
+            </div>
+            
+            <div class="mb-5">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">ผู้รับผิดชอบในตัวบ่งชี้ใด <span class="font-normal text-slate-500">(เลือกได้หลายข้อ)</span></label>
+                <div id="regIndicators" class="h-40 overflow-y-auto border border-slate-300 rounded-lg p-3 bg-slate-50 shadow-inner"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">กำหนด Username <span class="text-red-500">*</span></label><input type="text" id="regUsername" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"></div>
+                <div><label class="block text-xs font-bold text-slate-700 mb-1">กำหนด Password <span class="text-red-500">*</span></label><input type="password" id="regPassword" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"></div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                <button onclick="closeRegisterModal()" class="px-5 py-2.5 bg-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-300 transition">ยกเลิก</button>
+                <button onclick="submitRegistration()" class="px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-md hover:bg-blue-700 transition flex items-center gap-2"><i class="fa-solid fa-paper-plane"></i> ยืนยันการสมัคร</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPassModal" class="modal-backdrop" style="z-index: 10001;">
+        <div class="modal-box bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 relative">
+            <h3 class="text-lg font-bold text-slate-800 mb-2"><i class="fa-solid fa-key text-slate-500 mr-2"></i>ลืมรหัสผ่าน</h3>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">กรุณาระบุ Username หรือ E-mail ของท่าน ระบบจะส่งคำร้องไปยัง Admin เพื่อดำเนินการตรวจสอบและรีเซ็ตรหัสผ่าน</p>
+            <input type="text" id="forgotInput" placeholder="กรอก Username หรือ E-mail" class="w-full border border-slate-300 rounded-lg p-3 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none mb-5 shadow-sm">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeForgotPassModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-300 transition">ยกเลิก</button>
+                <button onclick="submitForgotPass()" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow hover:bg-blue-700 transition">ส่งคำร้อง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="bg-gradient-to-r from-slate-900 to-blue-900 text-white shadow-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/10">
+                        <i class="fa-solid fa-award text-yellow-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight hidden sm:block">ระบบควบคุมภายใน - สถานศึกษารางวัลพระราชทาน</h1>
+                        <h1 class="font-bold text-lg leading-tight sm:hidden">ระบบประเมิน V.6</h1>
+                        <p class="text-xs text-blue-200" id="navUserInfo">กำลังตรวจสอบสิทธิ์...</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <!-- Action Buttons -->
+                    <div class="hidden sm:flex gap-2">
+                        <button onclick="generateReport()" class="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition border border-white/20 flex items-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> พิมพ์รายงาน 88 ข้อ
+                        </button>
+                    </div>
+                    
+                    <div class="hidden md:flex flex-col items-end border-l border-white/20 pl-4">
+                        <span class="text-[10px] text-blue-200 uppercase tracking-wider">ความคืบหน้าภาพรวม</span>
+                        <span class="font-bold text-xl leading-none" id="overall-progress-text">0%</span>
+                    </div>
+                    <div class="w-16 sm:w-28 bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner border border-slate-700">
+                        <div id="overall-progress-bar" class="bg-gradient-to-r from-green-400 to-emerald-500 h-full rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                    </div>
+                    <button onclick="logout()" class="ml-1 sm:ml-2 text-slate-300 hover:text-white transition p-2 bg-white/5 rounded-lg border border-white/10" title="ออกจากระบบ">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="appBody" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col lg:flex-row gap-6 relative h-[calc(100vh-64px)] hidden">
+        <!-- Sidebar Menu -->
+        <aside class="w-full lg:w-72 flex-shrink-0 z-30 lg:h-full lg:overflow-y-auto hide-scroll pb-4 lg:pb-10 no-print">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-0">
+                <h3 class="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 flex justify-between items-center">
+                    <span><i class="fa-solid fa-layer-group text-blue-600 mr-2"></i>หมวดหมู่การประเมิน</span>
+                    <span id="connectionStatus" class="flex items-center gap-1 text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full"><i class="fa-solid fa-circle-notch fa-spin"></i> Connecting</span>
+                </h3>
+                <ul id="sidebar-menu" class="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 hide-scroll"></ul>
+            </div>
+        </aside>
+
+        <!-- Assessment Container -->
+        <main class="flex-1 min-w-0 flex flex-col lg:h-full no-print">
+            
+            <!-- Dashboard Charts Section -->
+            <div id="dashboard-charts-container" class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+                <h3 class="font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-chart-pie text-blue-600 mr-2"></i>ภาพรวมความคืบหน้าการประเมินรายด้าน</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="charts-grid">
+                    <!-- Charts injected here -->
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-6 flex flex-wrap gap-2 items-center sticky top-0 z-20">
+                <span class="text-xs font-bold text-slate-500 mr-2"><i class="fa-solid fa-filter mr-1"></i>ตัวกรอง:</span>
+                <button onclick="filterItems('all')" id="flt_all" class="filter-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 text-white shadow-sm transition">ทั้งหมด</button>
+                <button onclick="filterItems('pending')" id="flt_pending" class="filter-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-amber-50 transition">รอตรวจสอบ</button>
+                <button onclick="filterItems('rejected')" id="flt_rejected" class="filter-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-red-50 transition">ต้องแก้ไข</button>
+                <button onclick="filterItems('approved')" id="flt_approved" class="filter-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-green-50 transition">อนุมัติแล้ว</button>
+                <button onclick="filterItems('draft')" id="flt_draft" class="filter-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition">ฉบับร่าง</button>
+            </div>
+
+            <!-- Items List -->
+            <div id="assessment-container" class="space-y-6 flex-1 lg:overflow-y-auto hide-scroll pb-20"></div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // Global State & Config
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAu0n6DKp1JuVZCZudR7KRHfe27skrlGu0",
+  authDomain: "quality12-cd8ea.firebaseapp.com",
+  projectId: "quality12-cd8ea",
+  storageBucket: "quality12-cd8ea.firebasestorage.app",
+  messagingSenderId: "3509201975",
+  appId: "1:3509201975:web:f2beaf7b47e071dab1e3b2",
+  measurementId: "G-1JK4DKN6TR"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);};
+        try { firebaseConfig = JSON.parse(firebaseConfigStr); } catch(e) { console.warn("No Firebase Config found."); }
+
+        // ==========================================
+        // ตั้งค่า Google Apps Script (Google Sheets & Drive)
+        // ==========================================
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0cpCBcMqPj55xiI23Fv8B6YlZDeIBQ3Osb3kFsI336ygtbfwpyxpXpMRQyRzkoHU/exec"; // <-- นำ URL ที่ลงท้ายด้วย /exec จาก Google Apps Script มาใส่ในเครื่องหมายคำพูดนี้
+
+        let app, auth, db, storage;
+        let currentUser = null;
+        let userRole = ''; 
+        let userName = '';
+        let userDataStore = {}; 
+        let unsubscribeSnapshot = null;
+        let debounceTimers = {};
+        let isUploading = {}; 
+        let isOfflineMode = false;
+        let sectionCharts = {}; // Global chart instances
+
+        // Assessment Schema (Complete 6 Sections, 88 Indicators based on 2567 Manual)
+        const commonMethods = "พิจารณาจากหลักฐานและร่องรอยการปฏิบัติงาน, สัมภาษณ์บุคลากรที่เกี่ยวข้อง";
+        const assessmentData = [
+            {
+                id: "sec_1", title: "ด้านที่ 1: คุณภาพนักเรียน นักศึกษา", weight: 3, description: "ประเมินพฤติกรรม ผลสัมฤทธิ์ และคุณลักษณะที่พึงประสงค์ (12 ข้อ)",
+                subsections: [
+                    {
+                        title: "1.1 คุณธรรม จริยธรรม และค่านิยมที่พึงประสงค์",
+                        items: [
+                            { id: "1_1_1", type: "ข้อมูลสถิติ", topic: "ความรับผิดชอบ ซื่อสัตย์ และเสียสละเพื่อส่วนรวม", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป มีความรับผิดชอบ ซื่อสัตย์ และเสียสละเพื่อส่วนรวม", methods: "พิจารณาหลักฐาน (แผนงาน/โครงการ, ภาพถ่าย), สัมภาษณ์รายบุคคล/กลุ่ม", needsInterview: true },
+                            { id: "1_1_2", type: "ข้อมูลสถิติ", topic: "ความเป็นประชาธิปไตย ปฏิบัติหน้าที่เต็มศักยภาพ และทำงานร่วมกับผู้อื่นได้อย่างเป็นกัลยาณมิตร", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป มีความเป็นประชาธิปไตย สามารถปฏิบัติหน้าที่ของตนได้เต็มศักยภาพและทำงานร่วมกับผู้อื่นได้อย่างเป็นกัลยาณมิตร", methods: "พิจารณาจากหลักฐาน, สัมภาษณ์" },
+                            { id: "1_1_3", type: "ข้อมูลสถิติ", topic: "ภาวะผู้นำ กล้าแสดงออก และวิพากษ์วิจารณ์ได้อย่างสร้างสรรค์", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป มีภาวะความเป็นผู้นำ กล้าแสดงออก และสามารถวิพากษ์วิจารณ์ได้อย่างสร้างสรรค์", methods: "พิจารณาจากหลักฐาน, สัมภาษณ์" },
+                            { id: "1_1_4", type: "ข้อมูลสถิติ", topic: "ภูมิใจในความเป็นไทย เห็นคุณค่าและร่วมพัฒนาภูมิปัญญาไทย", level4: "นักเรียน นักศึกษาร้อยละ 90 ขึ้นไป มีความภาคภูมิใจในความเป็นไทย เห็นคุณค่าและร่วมพัฒนาภูมิปัญญาไทย", methods: "ตรวจร่องรอยผลงาน/กิจกรรมที่เกี่ยวกับภูมิปัญญาไทย การสัมภาษณ์บุคคลในชุมชน" },
+                            { id: "1_1_5", type: "ข้อมูลสถิติ", topic: "จิตสำนึกในการอนุรักษ์ทรัพยากรธรรมชาติและสิ่งแวดล้อม", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป มีจิตสำนึกต่อส่วนรวม มีส่วนร่วมรักษาทรัพย์สมบัติ ร่วมกันดูแลบำรุงรักษาทั้งภายในและภายนอกสถานศึกษา", methods: "สังเกตสภาพการใช้น้ำ ไฟ กระดาษ ความสะอาดของสภาพแวดล้อม และสัมภาษณ์ชุมชน", needsObservation: true }
+                        ]
+                    },
+                    {
+                        title: "1.2 ความรู้ความสามารถและทักษะพื้นฐานที่จำเป็น",
+                        items: [
+                            { id: "1_2_1", type: "ข้อมูลสถิติ", topic: "ความรู้ความสามารถทางวิชาการและวิชาชีพตามสาขาวิชาที่เรียน", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป มีความรู้ความสามารถทางวิชาการและวิชาชีพตามสาขาที่เรียน", methods: "ผลสัมฤทธิ์ทางการเรียนโดยรวม, แฟ้มผลงาน (Portfolio), โครงงาน, รางวัลการประกวด" },
+                            { id: "1_2_2", type: "ข้อมูลสถิติ", topic: "ทักษะการสื่อสารและการวิจัย (คิดวิเคราะห์และแก้ปัญหาเป็น)", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป มีทักษะการสื่อสารและการวิจัย", methods: "พิจารณาจากหลักฐาน, สัมภาษณ์นักเรียน" },
+                            { id: "1_2_3", type: "ข้อมูลสถิติ", topic: "จบหลักสูตรได้ภายในเวลาที่สถานศึกษากำหนด", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป จบหลักสูตรได้ภายในเวลาที่สถานศึกษากำหนด", methods: "สถิติการจบหลักสูตรภายในเวลาที่กำหนดจากฝ่ายทะเบียน" },
+                            { id: "1_2_4", type: "ข้อมูลสถิติ", topic: "นำความรู้และเทคโนโลยีไปประยุกต์ใช้ในชีวิตประจำวัน หรือผลิตผลงานได้อย่างสร้างสรรค์", level4: "นักเรียน นักศึกษาร้อยละ 80 ขึ้นไป แสวงหาความรู้ด้วยตนเองได้ ใช้ความรู้และประสบการณ์เดิมรวมกับความรู้ใหม่มาสร้างสรรค์ความรู้ใหม่หรือผลิตผลงาน", methods: "พิจารณาจากผลงานสิ่งประดิษฐ์ นวัตกรรม" }
+                        ]
+                    },
+                    {
+                        title: "1.3 บุคลิกภาพ วุฒิภาวะทางอารมณ์ และสุนทรียภาพ",
+                        items: [
+                            { id: "1_3_1", type: "ข้อมูลสถิติ", topic: "บุคลิกภาพดี ออกกำลังกายสม่ำเสมอและมีส่วนร่วมในกิจกรรมดนตรี กีฬา และศิลปะ", level4: "นักเรียน นักศึกษาร้อยละ 90 ขึ้นไป มีบุคลิกภาพดี ออกกำลังกายสม่ำเสมอ จัดหรือร่วมกิจกรรมดนตรี กีฬา ศิลปะอย่างอิสระและมีความสุข", methods: "โล่รางวัล/เกียรติบัตรด้านกีฬา ดนตรี ศิลปะ และสังเกตพฤติกรรม" },
+                            { id: "1_3_2", type: "ข้อมูลสถิติ", topic: "วุฒิภาวะทางอารมณ์ ไม่มีปัญหาพฤติกรรมทางเพศ และไม่ก่อเหตุทะเลาะวิวาท", level4: "นักเรียน นักศึกษาร้อยละ 90 ขึ้นไป มีวุฒิภาวะทางอารมณ์ ไม่มีปัญหาพฤติกรรมทางเพศ ไม่มีเหตุทะเลาะวิวาทรุนแรงทั้งภายในและภายนอกสถานศึกษา", methods: "บันทึกพฤติกรรม ฝ่ายกิจการนักเรียน" },
+                            { id: "1_3_3", type: "ข้อมูลสถิติ", topic: "เป็นผู้ห่างไกลจากสารเสพติดและอบายมุขทั้งปวง", level4: "นักเรียน นักศึกษาร้อยละ 100 เป็นผู้ห่างไกลจากสารเสพติดและอบายมุขทุกชนิด", methods: "รายงานผลการดำเนินงานโครงการต่อต้านยาเสพติด และตรวจสอบข้อมูลพฤติกรรม" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "sec_2", title: "ด้านที่ 2: การบริหารหลักสูตรและงานวิชาการ", weight: 2, description: "ประเมินความยืดหยุ่นของหลักสูตร การสอนแบบลงมือปฏิบัติ และนวัตกรรม (24 ข้อ)",
+                subsections: [
+                    {
+                        title: "2.1 การพัฒนาหลักสูตร",
+                        items: [
+                            { id: "2_1_1", type: "ประจักษ์", topic: "การวิเคราะห์และวางแผนเปิดสอนรายวิชาต่างๆ ตามโครงสร้างหลักสูตร", level4: "มีการวิเคราะห์ความต้องการของตลาดแรงงาน รายวิชาเปิดสอนสอดคล้องกับวิสัยทัศน์ และครอบคลุมเป้าหมายของสถานศึกษา", methods: "โครงสร้างหลักสูตร, รายงานวิเคราะห์ตลาดแรงงาน" },
+                            { id: "2_1_2", type: "ประจักษ์", topic: "การกำกับ ติดตาม ประเมิน และใช้ผลการประเมินในการพัฒนาหลักสูตร", level4: "มีคณะทำงานรับผิดชอบ มีแผนดำเนินงานต่อเนื่อง สรุปผลครบถ้วน และนำผลประเมินไปพัฒนาหลักสูตรอย่างต่อเนื่อง", methods: "รายงานการกำกับติดตามหลักสูตร" },
+                            { id: "2_1_3", type: "ประจักษ์", topic: "หลักสูตรมีความยืดหยุ่นหลากหลายและสอดคล้องกับความต้องการของตลาดแรงงาน", level4: "หลักสูตรมีรายวิชาเลือกหลากหลาย สอดคล้องกับผลการสำรวจความต้องการตลาดแรงงานในชุมชน", methods: "รายวิชาเลือกที่เปิดสอน" },
+                            { id: "2_1_4", type: "ประจักษ์", topic: "หลักสูตรเป็นไปตามเกณฑ์มาตรฐานการศึกษาหรือมาตรฐานองค์กรวิชาชีพ", level4: "หลักสูตรเป็นไปตามมาตรฐานการศึกษาหรือมาตรฐานองค์กรวิชาชีพครบถ้วน", methods: "เอกสารรับรองมาตรฐาน" }
+                        ]
+                    },
+                    {
+                        title: "2.2 การพัฒนาการเรียนการสอน",
+                        items: [
+                            { id: "2_2_1", type: "สถิติ", topic: "การจัดการเรียนการสอนที่ให้นักเรียนสร้างความรู้ด้วยตนเองและลงมือปฏิบัติจริง", level4: "ครูร้อยละ 80 ขึ้นไป สอนแบบ Active Learning และนักเรียนทุกคน (100%) ได้ลงมือปฏิบัติจริงในสถานประกอบการ", methods: "แผนการสอน, บันทึกการฝึกงาน, สมุดบันทึกปฏิบัติงาน" },
+                            { id: "2_2_2", type: "ประจักษ์", topic: "การส่งเสริมการวิจัยเชิงลึกและนำภูมิปัญญาท้องถิ่นมาประยุกต์ใช้", level4: "มีผลงานวิจัยในสาขาอย่างน้อย 4-5 เรื่อง และนำภูมิปัญญาท้องถิ่นมาประยุกต์ใช้หรือสอดแทรกในการสอน", methods: "ผลงานวิจัย, แผนการจัดการเรียนรู้" },
+                            { id: "2_2_3", type: "สถิติ", topic: "การใช้เครื่องมือ อุปกรณ์ สื่อ และเทคโนโลยีที่ทันสมัยและคุ้มค่า", level4: "ครูร้อยละ 80 ขึ้นไป ใช้เครื่องมือ อุปกรณ์ สื่อและเทคโนโลยีที่ทันสมัย เช่น อินเทอร์เน็ต และใช้อย่างคุ้มค่า", methods: "สื่อการสอน, สถิติการใช้เทคโนโลยี" },
+                            { id: "2_2_4", type: "สถิติ", topic: "การประเมินคุณภาพการจัดการเรียนการสอนของครู", level4: "ครูทุกคนมีแผนการสอน มีการประเมิน 360 องศา และครูร้อยละ 80 ขึ้นไปมีผลประเมินที่น่าพอใจ", methods: "โครงการสอน, แบบประเมินคุณภาพครูผู้สอน, ผลสรุปการประเมิน" }
+                        ]
+                    },
+                    {
+                        title: "2.3 การพัฒนาระบบการวัดและประเมินผลการเรียน",
+                        items: [
+                            { id: "2_3_1", type: "ประจักษ์", topic: "การใช้เครื่องมือวัดและประเมินผลการเรียนที่มีคุณภาพและหลากหลาย", level4: "มีเครื่องมือวัดที่สอดคล้องกับจุดหมายหลักสูตร ใช้วิธีหลากหลาย เน้นวิเคราะห์ สังเคราะห์ และครอบคลุมพฤติกรรมทุกด้าน", methods: "เครื่องมือวัดและประเมินผล" },
+                            { id: "2_3_2", type: "ประจักษ์", topic: "การกำหนดเกณฑ์การตัดสินผลการเรียนที่ช่วยยกระดับคุณภาพนักเรียน", level4: "ระบุที่มาของเกณฑ์ มีการปรับเกณฑ์ให้สูงขึ้น และมีรายวิชาทดสอบความสามารถระดับสูง (Honor Course)", methods: "เกณฑ์การตัดสินผลการเรียน" },
+                            { id: "2_3_3", type: "ประจักษ์", topic: "ระบบการรายงานความก้าวหน้าทางการเรียนต่อนักเรียน ผู้ปกครอง และชุมชน", level4: "กำหนดนโยบายรายงานชัดเจน ข้อมูลถูกต้องครบถ้วน เป็นปัจจุบัน ผู้รับบริการพึงพอใจ", methods: "ระบบสารสนเทศรายงานผลการเรียน" },
+                            { id: "2_3_4", type: "ประจักษ์", topic: "การใช้ข้อมูลจากผลการเรียนไปพัฒนานักเรียน พัฒนาการสอน และพัฒนาหลักสูตร", level4: "มีการรายงานรายบุคคลทุกระดับชั้น แผนการสอนและหลักสูตรถูกปรับปรุงโดยใช้ข้อมูลผลการเรียน", methods: "รายงานผลการเรียน, หลักฐานการปรับปรุงหลักสูตร" }
+                        ]
+                    },
+                    {
+                        title: "2.4 การพัฒนากิจการนักเรียน นักศึกษา",
+                        items: [
+                            { id: "2_4_1", type: "ประจักษ์", topic: "การจัดกิจกรรมเพื่อส่งเสริมทักษะทางวิชาการหรือวิชาชีพ", level4: "สำรวจความต้องการ จัดชุมนุมหลากหลาย กิจกรรมน่าสนใจ มีครูเชี่ยวชาญ นักเรียนร่วมด้วยความพอใจ มีผลงานชัดเจน", methods: "แผนงานกิจกรรมชุมนุม, ผลงานชุมนุม" },
+                            { id: "2_4_2", type: "ประจักษ์", topic: "การจัดกิจกรรมเพื่อส่งเสริมคุณลักษณะอันพึงประสงค์", level4: "มีนโยบายชัดเจน จัดกิจกรรมหลากหลาย มีข้อกำหนดประเมินชัดเจน บรรลุตามเป้าหมาย", methods: "โครงการคุณธรรมจริยธรรม" },
+                            { id: "2_4_3", type: "ประจักษ์", topic: "การจัดบริการให้คำปรึกษาด้านสุขภาพจิต การเรียน และบุคลิกภาพ", level4: "มีแผนระยะสั้นและยาว กิจกรรมน่าสนใจ ครอบคลุมทั่วถึง มีสารสนเทศเพียงพอ นักเรียนพึงพอใจ", methods: "ระบบแนะแนวและให้คำปรึกษา" },
+                            { id: "2_4_4", type: "ประจักษ์", topic: "การจัดสวัสดิการต่าง ๆ เพื่อสนับสนุนและช่วยเหลือนักเรียน", level4: "ครูมีข้อมูลรายบุคคล รู้ปัญหา ให้ทุนทั่วถึง มีบริการน้ำดื่ม โทรศัพท์ แหล่งพักผ่อน เพียงพอ ปลอดภัย", methods: "รายงานทุนการศึกษา, สภาพแวดล้อมสวัสดิการ" }
+                        ]
+                    },
+                    {
+                        title: "2.5 การพัฒนาแหล่งการเรียนรู้",
+                        items: [
+                            { id: "2_5_1", type: "ประจักษ์", topic: "แหล่งสืบค้นข้อมูล ห้องสมุดหรือศูนย์วิทยบริการมีปริมาณสื่อเพียงพอ", level4: "คอมพิวเตอร์เพียงพอ ห้องสมุดมีสื่อและหนังสือ จัดหมวดหมู่สากล มีสถิติการยืมที่เป็นปัจจุบัน", methods: "สถิติการใช้ห้องสมุด, ระบบคอมพิวเตอร์" },
+                            { id: "2_5_2", type: "สถิติ", topic: "การจัดกิจกรรมที่ส่งเสริมให้นักเรียนใฝ่หาความรู้", level4: "มีโครงการส่งเสริมให้แสวงหาความรู้ใหม่ นักเรียนร้อยละ 50 ขึ้นไป ผลิตผลงานที่มีคุณภาพเกิดประโยชน์ต่อสังคม", methods: "โครงการรักการอ่าน, ผลงานนักเรียน" },
+                            { id: "2_5_3", type: "ประจักษ์", topic: "ห้องปฏิบัติการต่าง ๆ ครบถ้วน เพียงพอ และใช้ประโยชน์คุ้มค่า", level4: "มีห้องปฏิบัติการต่างๆ พร้อมสิ่งอำนวยความสะดวกครบถ้วนเพียงพอ และใช้ประโยชน์คุ้มค่า", methods: "บันทึกการใช้ห้องปฏิบัติการ" },
+                            { id: "2_5_4", type: "ประจักษ์", topic: "การจัดสภาพแวดล้อมที่ดีภายในบริเวณสถานศึกษา", level4: "สภาพแวดล้อมภายในสะอาด ร่มรื่น ปลอดภัย และมีบริเวณพักผ่อนเพียงพอ", methods: "เดินสำรวจสภาพจริง" }
+                        ]
+                    },
+                    {
+                        title: "2.6 การค้นคว้า วิจัย การถ่ายทอดเทคโนโลยีและนวัตกรรมทางการศึกษา",
+                        items: [
+                            { id: "2_6_1", type: "ประจักษ์", topic: "แผนงานส่งเสริมการวิจัย เทคโนโลยีและนวัตกรรม สอดคล้องกับภารกิจ", level4: "มีแผนงาน/โครงการที่สอดคล้องกับภารกิจของสถานศึกษาชัดเจนมาก", methods: "แผนปฏิบัติการ, โครงการวิจัย" },
+                            { id: "2_6_2", type: "ประจักษ์", topic: "กลไกที่ส่งเสริม สนับสนุนการวิจัย หรือพัฒนาบุคลากรทางการวิจัย", level4: "สถานศึกษาส่งเสริมและสนับสนุนปัจจัยให้ทำวิจัยเพื่อพัฒนาความรู้ใหม่และมีผลงานปรากฏชัดเจน", methods: "คำสั่งแต่งตั้ง, งบประมาณสนับสนุนการวิจัย" },
+                            { id: "2_6_3", type: "สถิติ", topic: "ผลงานวิจัยหรือการพัฒนานวัตกรรมหรือเทคโนโลยีมีคุณภาพ", level4: "ผลงานวิจัยมากกว่าร้อยละ 50 ได้รับการประเมินจากสถานศึกษาและผู้เกี่ยวข้องว่ามีคุณภาพ", methods: "รายงานผลการประเมินงานวิจัย" },
+                            { id: "2_6_4", type: "สถิติ", topic: "การนำผลการวิจัยไปใช้ให้เกิดประโยชน์และคุ้มค่า", level4: "ผลงานมากกว่าร้อยละ 80 สามารถนำไปประยุกต์ใช้ให้เกิดประโยชน์และคุ้มค่า", methods: "หลักฐานการนำผลงานวิจัยไปใช้ประโยชน์" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "sec_3", title: "ด้านที่ 3: การบริหารการจัดการ", weight: 2, description: "ประเมินระบบข้อมูล อาคารสถานที่ งบประมาณ และประกันคุณภาพ (20 ข้อ)",
+                subsections: [
+                    {
+                        title: "3.1 การพัฒนาระบบข้อมูลและสารสนเทศ",
+                        items: [
+                            { id: "3_1_1", type: "ประจักษ์", topic: "การจัดระบบข้อมูลและสารสนเทศพื้นฐานครอบคลุมและเป็นปัจจุบัน", level4: "มีข้อมูลและสารสนเทศที่จัดระบบไว้ครอบคลุมการใช้งานและสารสนเทศทุกส่วนเป็นปัจจุบัน", methods: "ระบบฐานข้อมูลสถานศึกษา" },
+                            { id: "3_1_2", type: "ประจักษ์", topic: "การจัดเก็บข้อมูลเป็นระบบ ทันสมัย และพัฒนาต่อเนื่อง", level4: "จัดเป็นหมวดหมู่ วิเคราะห์สรุปเป็นสารสนเทศนำไปใช้ได้ทันที ใช้เครื่องมือทันสมัยและปรับปรุงเสมอ", methods: "ทดสอบระบบสารสนเทศ" },
+                            { id: "3_1_3", type: "ประจักษ์", topic: "การนำข้อมูลไปใช้ในการบริหารจัดการและการเรียนการสอน", level4: "มีการใช้ข้อมูลเป็นฐานข้อมูลเพื่อการตัดสินใจในการบริหารและจัดการเรียนการสอน และเกิดประโยชน์คุ้มค่า", methods: "รายงานการประชุม, แผนปฏิบัติการ" },
+                            { id: "3_1_4", type: "ประจักษ์", topic: "การเผยแพร่ข้อมูลข่าวสาร กิจกรรม และผลการพัฒนาคุณภาพ", level4: "มีแผนการดำเนินงาน ใช้วิธีการหลากหลายน่าสนใจ ครอบคลุมกลุ่มเป้าหมาย มีผลงานปรากฏชัด ทุกฝ่ายพึงพอใจ", methods: "สื่อประชาสัมพันธ์, เว็บไซต์สถานศึกษา" }
+                        ]
+                    },
+                    {
+                        title: "3.2 การพัฒนาคุณภาพของสถานศึกษา",
+                        items: [
+                            { id: "3_2_1", type: "ประจักษ์", topic: "แผนพัฒนาคุณภาพและแผนปฏิบัติงานสอดคล้องกับเป้าหมาย", level4: "แผนสอดคล้องกับนโยบาย ศักยภาพ และความต้องการท้องถิ่น มียุทธวิธีชัดเจน โอกาสสำเร็จสูง มีผู้รับผิดชอบชัดเจน", methods: "แผนพัฒนาสถานศึกษา" },
+                            { id: "3_2_2", type: "ประจักษ์", topic: "การดำเนินงานตามแผนเป็นไปอย่างมีระบบ", level4: "มีการดำเนินงานตามแผนอย่างเป็นระบบครบทุกกิจกรรม", methods: "รายงานผลการดำเนินงานโครงการ" },
+                            { id: "3_2_3", type: "ประจักษ์", topic: "การติดตาม ตรวจสอบ ประเมิน และพัฒนางานอย่างต่อเนื่อง", level4: "มีแผนกำกับติดตามชัดเจน มีคณะทำงานรับผิดชอบ และปฏิบัติอย่างสม่ำเสมอ", methods: "รายงานการติดตามประเมินผล" },
+                            { id: "3_2_4", type: "ประจักษ์", topic: "การรายงานผลการดำเนินงานให้ผู้ปกครอง ชุมชนและหน่วยงานทราบ", level4: "มีรายงานประจำปีอย่างแพร่หลาย หลากหลายรูปแบบ น่าสนใจ และเหมาะกับกลุ่มเป้าหมาย", methods: "SAR, รายงานประจำปี" }
+                        ]
+                    },
+                    {
+                        title: "3.3 การบริหารงบประมาณและการบริการ",
+                        items: [
+                            { id: "3_3_1", type: "ประจักษ์", topic: "การจัดสรรงบประมาณมุ่งเน้นที่ผลงาน ตามมาตรฐานการจัดการการเงิน", level4: "จัดสรรสอดคล้องกับพันธกิจ แหล่งที่มาชัดเจน เงินเพียงพอ กำหนดสัดส่วนเหมาะสม คำนึงถึงประโยชน์นักเรียนส่วนใหญ่", methods: "แผนการปฏิบัติการและใช้งบประมาณ" },
+                            { id: "3_3_2", type: "ประจักษ์", topic: "การติดตาม และประเมินผลการใช้งบประมาณอย่างสม่ำเสมอ", level4: "มีแผนการติดตามและประเมินผลสม่ำเสมอ การใช้งบประมาณทั้งหมดเป็นไปตามแผน", methods: "รายงานประเมินผลการใช้งบประมาณ" },
+                            { id: "3_3_3", type: "ประจักษ์", topic: "การรายงานผลการใช้งบประมาณอย่างเป็นระบบและตรวจสอบได้", level4: "มีระบบเชื่อมโยงและรายงานผลตามความเป็นจริง ถูกต้อง และเป็นปัจจุบัน", methods: "รายงานทางการเงิน" },
+                            { id: "3_3_4", type: "สถิติ", topic: "การจัดบริการ/สวัสดิการต่าง ๆ ให้แก่บุคลากรตามความเหมาะสมและทั่วถึง", level4: "จัดหลากหลายเหมาะสมกับสถานการณ์ ทั่วถึง บุคลากรร้อยละ 80 ขึ้นไปพึงพอใจ", methods: "แบบสอบถามความพึงพอใจสวัสดิการ" }
+                        ]
+                    },
+                    {
+                        title: "3.4 การบริหารงานอาคารสถานที่",
+                        items: [
+                            { id: "3_4_1", type: "ประจักษ์", topic: "พื้นที่ โครงสร้าง อาคารเรียนมั่นคง แข็งแรง สะอาด ปลอดภัย", level4: "มั่นคง มีการตรวจสอบประจำทุกปี สะอาดเหมาะสม มีระบบดูแลความปลอดภัยทั้งในและรอบสถานศึกษา", methods: "บันทึกการตรวจสอบอาคาร, เดินสำรวจ" },
+                            { id: "3_4_2", type: "ประจักษ์", topic: "อุปกรณ์และสิ่งอำนวยความสะดวก อยู่ในสภาพดี ปลอดภัย เพียงพอ", level4: "อุปกรณ์และสิ่งอำนวยความสะดวกอยู่ในสภาพดี ปลอดภัย ใช้การได้ดีและมีปริมาณเพียงพอ", methods: "ทะเบียนคุมทรัพย์สิน, การสำรวจ" },
+                            { id: "3_4_3", type: "ประจักษ์", topic: "แผนการจัดระบบซ่อมบำรุงเหมาะสมและทันต่อเหตุการณ์", level4: "มีแผนการจัดระบบซ่อมบำรุงชัดเจน เหมาะสม และจัดดำเนินการได้ทันต่อเหตุการณ์", methods: "แผนซ่อมบำรุง, บันทึกการซ่อม" },
+                            { id: "3_4_4", type: "ประจักษ์", topic: "ระบบสาธารณูปโภคและการสื่อสารใช้การได้ดี ปลอดภัย มีระบบป้องกัน", level4: "ใช้การได้ดี ปลอดภัย มีระบบป้องกันอันตราย และดำเนินการตรวจสอบสม่ำเสมอ", methods: "บันทึกการตรวจสอบระบบไฟฟ้าและน้ำ" }
+                        ]
+                    },
+                    {
+                        title: "3.5 การพัฒนาระบบการประกันคุณภาพภายใน",
+                        items: [
+                            { id: "3_5_1", type: "ประจักษ์", topic: "การกำหนดมาตรฐานการศึกษาเหมาะสมและเป็นที่ยอมรับ", level4: "ชัดเจน สอดคล้องภารกิจ คณะกรรมการสถานศึกษา ผู้แทนองค์กร และผู้แทนนักเรียนร่วมกันกำหนดเป้าหมาย", methods: "ประกาศมาตรฐานการศึกษา" },
+                            { id: "3_5_2", type: "สถิติ", topic: "การประเมินผลการปฏิบัติงานด้วยวิธีและเครื่องมือที่หลากหลาย", level4: "ร้อยละ 80 ของโครงการมีการประเมินผล ใช้วิธีประเมินหลากหลายมีประสิทธิภาพ จัดทำรายงานผลทุกโครงการ", methods: "รายงานผลโครงการ" },
+                            { id: "3_5_3", type: "ประจักษ์", topic: "ระบบการตรวจสอบและทบทวนคุณภาพภายในสถานศึกษา", level4: "มีคณะทำงาน แผนงานชัดเจน วางเครือข่ายเก็บข้อมูลเป็นระบบ สรุปผลและนำไปใช้อย่างคุ้มค่า", methods: "รายงานการประเมินคุณภาพภายใน" },
+                            { id: "3_5_4", type: "ประจักษ์", topic: "การผดุงระบบประกันคุณภาพภายในสถานศึกษา", level4: "โครงการสำเร็จทำต่อเนื่องไม่น้อยกว่า 3 ปี โครงการมีปัญหาได้รับการแก้ไขบรรลุเป้าหมายดีขึ้นทุกโครงการ", methods: "SAR 3 ปีย้อนหลัง" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "sec_4", title: "ด้านที่ 4: ความสัมพันธ์กับผู้ปกครองและชุมชน", weight: 2, description: "การมีส่วนร่วมของชุมชนและความร่วมมือในการอนุรักษ์พัฒนา (8 ข้อ)",
+                subsections: [
+                    {
+                        title: "4.1 การมีส่วนร่วมของผู้ปกครองและชุมชนต่อการจัดการศึกษา",
+                        items: [
+                            { id: "4_1_1", type: "ประจักษ์", topic: "การสำรวจความต้องการของผู้ปกครองและชุมชน", level4: "มีหลักฐานการสำรวจความต้องการครอบคลุมกลุ่มเป้าหมายในแต่ละปี สรุปผลชัดเจน และนำผลไปใช้จริง", methods: "รายงานผลสำรวจความต้องการ" },
+                            { id: "4_1_2", type: "ประจักษ์", topic: "การร่วมกันกำหนดวิสัยทัศน์และเป้าหมายการจัดการศึกษา", level4: "เกิดจากการร่วมคิดร่วมเสนอระหว่างสถานศึกษากับชุมชน ชัดเจน ทุกฝ่ายดำเนินไปในแนวทางเดียวกัน มีโอกาสสำเร็จสูง", methods: "รายงานการประชุมกำหนดวิสัยทัศน์" },
+                            { id: "4_1_3", type: "ประจักษ์", topic: "สมาคม ชมรม หรือองค์กรที่เข้มแข็งให้การสนับสนุน", level4: "มีสมาคม ชมรม หรือองค์กรที่เข้มแข็งให้การสนับสนุนต่อเนื่องและสม่ำเสมอ", methods: "หลักฐานการรับมอบการสนับสนุน" },
+                            { id: "4_1_4", type: "ประจักษ์", topic: "การมีส่วนร่วมของผู้ปกครองและชุมชนในการพัฒนาหลักสูตร", level4: "ผู้ปกครอง/ผู้นำร่วมวางแผนให้คำปรึกษาพัฒนาหลักสูตรอย่างสม่ำเสมอต่อเนื่อง ปีละมากกว่า 2 ครั้ง เกิดผลดี", methods: "รายงานการประชุมปรับปรุงหลักสูตร" }
+                        ]
+                    },
+                    {
+                        title: "4.2 ความร่วมมือระหว่างสถานศึกษากับชุมชน",
+                        items: [
+                            { id: "4_2_1", type: "ประจักษ์", topic: "โครงการเพื่อการอนุรักษ์/พัฒนาด้านศาสนา ศิลปวัฒนธรรม และสิ่งแวดล้อม", level4: "เกิดจากความต้องการร่วมกันของ 2 ฝ่าย ใช้การบริหารงานแบบมีส่วนร่วมและดำเนินงานอย่างเป็นระบบ", methods: "โครงการร่วมชุมชน" },
+                            { id: "4_2_2", type: "ประจักษ์", topic: "ผลการดำเนินงานร่วมกันเกิดประโยชน์ต่อส่วนรวมและสังคม", level4: "บรรลุผลสำเร็จเกิดประโยชน์ต่อนักเรียน นักศึกษา สถานศึกษาและชุมชนในท้องถิ่น", methods: "รายงานผลโครงการ" },
+                            { id: "4_2_3", type: "ประจักษ์", topic: "ชุมชนให้การสนับสนุนสถานศึกษาอย่างเหมาะสมและต่อเนื่อง", level4: "ชุมชนให้การยอมรับและให้การสนับสนุนสถานศึกษาในทุกๆ ด้านอย่างเหมาะสมและต่อเนื่อง", methods: "หนังสือแสดงความชื่นชม/สนับสนุน" },
+                            { id: "4_2_4", type: "ประจักษ์", topic: "สถานศึกษาเป็นแหล่งวิทยาการให้ความรู้และบริการชุมชน", level4: "มีการวางแผนดำเนินการเพื่อให้ความรู้และบริการในสิ่งที่เป็นประโยชน์ เกิดผลดีเยี่ยม และชุมชนยอมรับ", methods: "โครงการศูนย์ซ่อมสร้างชุมชน (Fix it)" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "sec_5", title: "ด้านที่ 5: บุคลากรและการบริหารงานบุคคล", weight: 1, description: "ศักยภาพผู้บริหาร ครู และการพัฒนาบุคลากร (16 ข้อ)",
+                subsections: [
+                    {
+                        title: "5.1 คุณลักษณะของผู้บริหาร",
+                        items: [
+                            { id: "5_1_1", type: "ประจักษ์", topic: "ความรู้ความสามารถในงานวิชาการและการบริหารจัดการ", level4: "มีความสามารถทั้งงานวิชาการ และงานบริหารจัดการโดดเด่น ผลการพัฒนาประจักษ์ชัด", methods: "ผลงานบริหาร, โล่รางวัล" },
+                            { id: "5_1_2", type: "ประจักษ์", topic: "วิสัยทัศน์และความเป็นผู้นำ", level4: "วิสัยทัศน์ทันสมัย เปิดโอกาสทุกคนแสดงความสามารถ นำชุมชนร่วมวางแผนและสนับสนุนเต็มที่ ชุมชนศรัทธา", methods: "แผนงานวิสัยทัศน์, สัมภาษณ์ชุมชน" },
+                            { id: "5_1_3", type: "ประจักษ์", topic: "ความเป็นประชาธิปไตยและบริหารงานแบบมีส่วนร่วม", level4: "รับฟังความคิดเห็นทุกฝ่าย กำหนดนโยบายและขั้นตอนเป็นระบบ ประสานสัมพันธ์ครู ผู้ปกครอง องค์กรได้ดี", methods: "รายงานการประชุมคณะกรรมการ" },
+                            { id: "5_1_4", type: "ประจักษ์", topic: "คุณธรรม จริยธรรม เป็นแบบอย่างที่ดี เป็นที่ยอมรับ", level4: "อยู่ในกรอบศีลธรรม เป็นแบบอย่างที่ดี มีคุณธรรมเด่นชัด จนได้รับการยกย่องจากทุกฝ่ายที่เกี่ยวข้อง", methods: "เกียรติบัตร, การสัมภาษณ์" }
+                        ]
+                    },
+                    {
+                        title: "5.2 คุณลักษณะของครู",
+                        items: [
+                            { id: "5_2_1", type: "สถิติ", topic: "ความรู้ความเข้าใจโครงสร้างหลักสูตรและพัฒนาการนักเรียน", level4: "ครูร้อยละ 80 ขึ้นไป มีความรู้ความเข้าใจหลักสูตร จิตวิทยา สามารถนำมาส่งเสริมพัฒนานักเรียนรายบุคคล", methods: "บันทึกการสอน, แผนรายบุคคล" },
+                            { id: "5_2_2", type: "สถิติ", topic: "ทักษะในการจัดกิจกรรมการเรียนการสอนและปฏิสัมพันธ์", level4: "ครูร้อยละ 80 ขึ้นไป มีทักษะในการจัดกิจกรรมตามความสามารถนักเรียน และมีปฏิสัมพันธ์ที่ดี", methods: "การประเมินการสอน, สังเกตพฤติกรรม" },
+                            { id: "5_2_3", type: "สถิติ", topic: "ความมุ่งมั่นปฏิบัติงาน รับผิดชอบ มีคุณธรรม เป็นแบบอย่าง", level4: "ครูร้อยละ 80 ขึ้นไป มุ่งมั่นปฏิบัติงานและรับผิดชอบหน้าที่ มีคุณธรรม จริยธรรม เป็นแบบอย่างที่ดี", methods: "สถิติการปฏิบัติงาน, รางวัลคุรุสภา" },
+                            { id: "5_2_4", type: "สถิติ", topic: "ทักษะทางวิชาชีพ ทักษะการวิจัย และการพัฒนาตนเอง", level4: "ครูร้อยละ 80 ขึ้นไป มีทักษะทางวิชาชีพ ทักษะการวิจัย และมีการพัฒนาตนเองสม่ำเสมอ", methods: "แฟ้มสะสมงาน, รายงานวิจัย" }
+                        ]
+                    },
+                    {
+                        title: "5.3 คุณลักษณะของบุคลากรฝ่ายสนับสนุน",
+                        items: [
+                            { id: "5_3_1", type: "สถิติ", topic: "เข้าใจบทบาทหน้าที่และปฏิบัติงานด้วยความรับผิดชอบ", level4: "บุคลากรฝ่ายสนับสนุนร้อยละ 80 ขึ้นไป เข้าใจบทบาทหน้าที่และปฏิบัติงานด้วยความรับผิดชอบ", methods: "แบบประเมินผลการปฏิบัติงาน" },
+                            { id: "5_3_2", type: "สถิติ", topic: "มีมนุษยสัมพันธ์ที่ดี และให้ความร่วมมือกับสถานศึกษา", level4: "บุคลากรฝ่ายสนับสนุนร้อยละ 80 ขึ้นไป มีมนุษยสัมพันธ์ที่ดี และให้ความร่วมมือกับสถานศึกษา", methods: "การสังเกต, การสัมภาษณ์" },
+                            { id: "5_3_3", type: "สถิติ", topic: "ตระหนักในการเป็นแบบอย่างที่ดี", level4: "บุคลากรฝ่ายสนับสนุนร้อยละ 80 ขึ้นไป ตระหนักในการเป็นแบบอย่างที่ดี", methods: "การประเมินพฤติกรรม" },
+                            { id: "5_3_4", type: "สถิติ", topic: "มีความรู้ความเข้าใจแนวทางการจัดการศึกษา", level4: "บุคลากรฝ่ายสนับสนุนร้อยละ 80 ขึ้นไป มีความรู้ความเข้าใจแนวทางการจัดการศึกษา", methods: "การสัมภาษณ์" }
+                        ]
+                    },
+                    {
+                        title: "5.4 การบริหารงานและการพัฒนาบุคลากร",
+                        items: [
+                            { id: "5_4_1", type: "ประจักษ์", topic: "โครงสร้างการบริหารงาน คุณสมบัติและบทบาทหน้าที่", level4: "โครงสร้างชัดเจน สายบริหารเหมาะสม กำหนดหน้าที่ชัดเจนถึงรายบุคคล มีคู่มือการปฏิบัติงานเป็นมาตรฐาน", methods: "ผังองค์กร, คู่มือปฏิบัติงาน (SOP)" },
+                            { id: "5_4_2", type: "ประจักษ์", topic: "ระบบนิเทศ ติดตาม ประเมิน และพัฒนางานอย่างสม่ำเสมอ", level4: "มีแผนนิเทศภายในวางระบบได้ดี กำหนดผู้รับผิดชอบเวลาชัดเจน บรรลุเป้าหมาย จัดทำรายงานและขยายผล", methods: "รายงานการนิเทศภายใน" },
+                            { id: "5_4_3", type: "ประจักษ์", topic: "การเสริมสร้างขวัญและกำลังใจให้แก่บุคลากร", level4: "มีระบบสร้างขวัญกำลังใจ/พิจารณาความดีความชอบที่เป็นธรรม กติกาชัดเจน ทุกฝ่ายได้รับทั่วถึงและพึงพอใจ", methods: "เกณฑ์พิจารณาความดีความชอบ" },
+                            { id: "5_4_4", type: "สถิติ", topic: "การพัฒนาบุคลากรดำเนินอย่างเป็นระบบ ต่อเนื่อง และทั่วถึง", level4: "มีแผนระยะยาวสอดคล้องวิสัยทัศน์ บุคลากรได้รับการฝึกอบรมสัมมนาเฉลี่ยคนละไม่น้อยกว่า 5 ครั้งต่อปี", methods: "แผนพัฒนาบุคลากร, เกียรติบัตร" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "sec_6", title: "ด้านที่ 6: ความดีเด่นของสถานศึกษา", weight: 2, description: "ผลงานทางวิชาการและอัตราการมีงานทำ (8 ข้อ)",
+                subsections: [
+                    {
+                        title: "6.1 ผลงานทางวิชาการหรือผลงานวิจัยของครู และนักเรียน",
+                        items: [
+                            { id: "6_1_1", type: "สถิติ", topic: "สัดส่วนของจำนวนผลงานต่อจำนวนครูและนักเรียน", level4: "มีจำนวนผลงานต่อจำนวนครู และนักเรียน นักศึกษาคิดเป็นร้อยละ 15 ขึ้นไป", methods: "ทะเบียนคุมผลงานวิจัย/สิ่งประดิษฐ์" },
+                            { id: "6_1_2", type: "ประจักษ์", topic: "ผลงานเกิดประโยชน์ในวงกว้างและได้รับการเผยแพร่", level4: "ผลงานส่วนใหญ่เกิดประโยชน์ต่อคุณภาพชีวิตของประชาชนโดยรวม และได้รับการเผยแพร่อย่างกว้างขวาง", methods: "หลักฐานการเผยแพร่ผลงาน" },
+                            { id: "6_1_3", type: "ประจักษ์", topic: "ผลงานได้จากการลงทุนอย่างประหยัดและคุ้มค่า", level4: "ใช้งบประมาณหรืองบลงทุนน้อยกว่าที่ประมาณการไว้ ได้ผลงานตามที่คาดหวัง", methods: "รายงานสรุปค่าใช้จ่ายโครงการ" },
+                            { id: "6_1_4", type: "ประจักษ์", topic: "ผลงานเกิดจากการทำงานแบบมีส่วนร่วม", level4: "ส่วนใหญ่เกิดจากทุกคนในคณะทำงานร่วมคิดปฏิบัติ สนับสนุนตามหน้าที่ มีโอกาสแสดงความเห็นเสรี", methods: "รายงานการประชุม, สัมภาษณ์" }
+                        ]
+                    },
+                    {
+                        title: "6.2 อัตราการมีงานทำและความพึงพอใจของผู้ใช้บริการ",
+                        items: [
+                            { id: "6_2_1", type: "สถิติ", topic: "จำนวนผู้สำเร็จการศึกษาที่มีงานทำและศึกษาต่อภายใน 1 ปี", level4: "ผู้สำเร็จการศึกษา ร้อยละ 80 ขึ้นไป มีงานทำและศึกษาต่อภายใน 1 ปี", methods: "รายงานผลติดตามการมีงานทำ" },
+                            { id: "6_2_2", type: "สถิติ", topic: "ผู้สำเร็จการศึกษาที่ได้งานทำมีอัตราเงินเดือนขั้นต้นไม่ต่ำกว่ามาตรฐาน", level4: "ผู้สำเร็จการศึกษาที่ได้งานทำ ร้อยละ 80 ขึ้นไป มีอัตราเงินเดือนขั้นต้นไม่ต่ำกว่ามาตรฐาน", methods: "สถิติเงินเดือนบัณฑิตจบใหม่" },
+                            { id: "6_2_3", type: "สถิติ", topic: "ได้รับการยอมรับให้ทำงานก้าวหน้าเป็นหัวหน้า/เจ้าของกิจการ (ย้อนหลัง 3 ปี)", level4: "ผู้สำเร็จการศึกษา ร้อยละ 15 ขึ้นไป ได้รับการยอมรับก้าวหน้าในระดับหัวหน้างานหรือเป็นเจ้าของกิจการ", methods: "ผลสำรวจศิษย์เก่า" },
+                            { id: "6_2_4", type: "สถิติ", topic: "ผู้ใช้บริการ (หน่วยงานว่าจ้าง) พึงพอใจคุณภาพของผู้สำเร็จการศึกษา", level4: "จำนวนสถานประกอบการที่รับผู้สำเร็จการศึกษาเข้าทำงานร้อยละ 90 ขึ้นไป พึงพอใจ", methods: "แบบสอบถามความพึงพอใจนายจ้าง" }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        window.showModal = function(title, message, type = 'info', onConfirm = null, showCancel = false) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            
+            const header = document.getElementById('modalHeader');
+            const icon = document.getElementById('modalIcon');
+            const btnOk = document.getElementById('modalBtnOk');
+            const btnCancel = document.getElementById('modalBtnCancel');
+            
+            header.className = `h-2 w-full absolute top-0 left-0 ${type==='error'?'bg-red-500': type==='warning'?'bg-orange-500':'bg-blue-500'}`;
+            icon.innerHTML = type === 'error' ? '<i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>' : 
+                             type === 'warning' ? '<i class="fa-solid fa-exclamation text-orange-600 text-xl"></i>' :
+                             '<i class="fa-solid fa-circle-info text-blue-600 text-xl"></i>';
+            icon.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${type==='error'?'bg-red-100': type==='warning'?'bg-orange-100':'bg-blue-100'}`;
+            btnOk.className = `w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:text-sm transition ${type==='error'?'bg-red-600 hover:bg-red-700 focus:ring-red-500': type==='warning'?'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500':'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'}`;
+
+            if(showCancel) {
+                btnCancel.classList.remove('hidden');
+                btnOk.classList.remove('w-full'); btnOk.classList.add('flex-1');
+                btnCancel.classList.add('flex-1');
+            } else {
+                btnCancel.classList.add('hidden');
+                btnOk.classList.add('w-full'); btnOk.classList.remove('flex-1');
+            }
+
+            modal.classList.add('active');
+            
+            btnOk.onclick = () => { modal.classList.remove('active'); if(onConfirm) onConfirm(); };
+            btnCancel.onclick = () => { modal.classList.remove('active'); };
+        };
+
+        let toastTimer = null;
+        window.showToast = function(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toastIcon').className = isError ? "fa-solid fa-circle-xmark text-red-400" : "fa-solid fa-circle-check text-green-400";
+            toast.classList.add('show');
+            if(toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+        };
+
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return '';
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+
+        function formatDate(isoStr) {
+            if(!isoStr) return "ยังไม่มีข้อมูล";
+            const d = new Date(isoStr);
+            return `${d.toLocaleDateString('th-TH')} ${d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})}`;
+        }
+
+        window.performLogin = async function() {
+            const userIn = document.getElementById('loginUsername').value.trim();
+            const passIn = document.getElementById('loginPassword').value.trim();
+            const errEl = document.getElementById('loginError');
+            const errMsg = document.getElementById('loginErrorMsg');
+            const btn = document.getElementById('btnLogin');
+
+            if(!userIn || !passIn) { errMsg.innerText = "กรุณากรอก Username และ Password"; errEl.classList.remove('hidden'); return; }
+
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> กำลังตรวจสอบสิทธิ์...';
+            btn.disabled = true;
+
+            // Load registered users from local storage
+            let registeredUsers = [];
+            try { registeredUsers = JSON.parse(localStorage.getItem('royalAwardUsers')) || []; } catch(e){}
+            const foundUser = registeredUsers.find(u => u.username === userIn && u.password === passIn);
+
+            if (userIn === 'kruchonvc' && passIn === 'chonvc1234') {
+                userRole = 'user'; userName = 'ครู (ผู้รับผิดชอบตัวชี้วัด)';
+            } else if (userIn === 'adminchonvc' && passIn === 'admin1234') {
+                userRole = 'admin'; userName = 'กรรมการ (QA)';
+            } else if (foundUser) {
+                userRole = 'user'; userName = foundUser.fullname;
+            } else {
+                errMsg.innerText = "Username หรือ Password ไม่ถูกต้อง! (Unauthorized)";
+                errEl.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ';
+                btn.disabled = false;
+                return;
+            }
+
+            errEl.classList.add('hidden');
+
+            try {
+                if(Object.keys(firebaseConfig).length > 0 && firebaseConfig.projectId) {
+                    app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); storage = getStorage(app);
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
+                    else { await signInAnonymously(auth); }
+                    currentUser = auth.currentUser;
+                } else { throw new Error("Missing Firebase Config"); }
+            } catch(e) {
+                console.warn("Switching to Offline Mode:", e.message);
+                isOfflineMode = true;
+                currentUser = { uid: 'offline-uid-' + userIn };
+                
+                const saved = localStorage.getItem('royalAwardV6Offline');
+                if(saved) { try { userDataStore = JSON.parse(saved); } catch(err){} }
+            }
+            
+            document.getElementById('loginOverlay').classList.remove('active');
+            document.getElementById('appBody').classList.remove('hidden');
+            document.body.classList.remove('overflow-hidden');
+            
+            document.getElementById('navUserInfo').innerHTML = `<i class="fa-regular fa-user bg-white/20 p-1 rounded-full mr-1"></i> ${escapeHTML(userName)} <span class="bg-${userRole==='admin'?'pink':'indigo'}-600 px-2 py-0.5 rounded text-[10px] ml-1 border border-white/30 uppercase tracking-wider shadow-sm">${userRole}</span>`;
+            
+            initAppUI();
+            
+            if(!isOfflineMode) { setupRealtimeListener(); } 
+            else { 
+                updateConnectionStatus(false); 
+                refreshAllDOM(); 
+                calculateProgress(); 
+                showToast("ระบบกำลังทำงานในโหมด Offline (Local Storage)", true); 
+            }
+        };
+
+        window.logout = function() { window.location.reload(); }
+
+        function initAppUI() {
+            const container = document.getElementById('assessment-container');
+            const sidebar = document.getElementById('sidebar-menu');
+            const chartsGrid = document.getElementById('charts-grid');
+            container.innerHTML = ''; sidebar.innerHTML = ''; chartsGrid.innerHTML = '';
+
+            assessmentData.forEach(section => {
+                // Render Chart Canvas Container
+                chartsGrid.innerHTML += `
+                    <div class="flex flex-col items-center justify-center p-2">
+                        <div class="relative w-20 h-20 sm:w-24 sm:h-24">
+                            <canvas id="chart_${section.id}"></canvas>
+                            <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                <span class="text-xs sm:text-sm font-bold text-slate-700" id="chart_pct_${section.id}">0%</span>
+                            </div>
+                        </div>
+                        <span class="text-[9px] sm:text-[10px] text-center font-bold text-slate-600 mt-2 truncate w-full px-1" title="${section.title}">ด้านที่ ${section.id.replace('sec_', '')}</span>
+                    </div>
+                `;
+
+                sidebar.innerHTML += `
+                    <li class="flex-shrink-0 w-56 lg:w-auto">
+                        <button onclick="scrollToSection('card_${section.id}')" class="w-full text-left bg-slate-50 hover:bg-blue-50 border border-slate-200 rounded-lg p-3 transition group relative shadow-sm">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-xs text-slate-700 truncate w-3/4" title="${section.title}">${section.title.split(':')[0]}</span>
+                                <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full" id="sb_pct_${section.id}">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-1.5"><div id="sb_prog_${section.id}" class="bg-blue-500 h-1.5 rounded-full" style="width:0%"></div></div>
+                        </button>
+                    </li>`;
+
+                let contentHtml = `<div id="content_${section.id}" class="accordion-content p-4 sm:p-6 open bg-slate-50 rounded-b-xl border-x border-b border-slate-200">`;
+                
+                section.subsections.forEach(sub => {
+                    contentHtml += `<h3 class="text-sm sm:text-[15px] font-bold text-slate-700 border-b border-slate-200 pb-2 mb-4 mt-2 flex items-center gap-2"><i class="fa-solid fa-folder-open text-blue-500"></i>${sub.title}</h3><div class="space-y-5 mb-8">`;
+                    
+                    sub.items.forEach(item => { contentHtml += createAssessmentItemHTML(item); });
+                    contentHtml += `</div>`;
+                });
+                
+                contentHtml += `</div>`;
+                const card = document.createElement('div');
+                card.id = `card_${section.id}`;
+                card.className = 'card-container bg-white rounded-xl shadow-sm mb-6 scroll-mt-20 relative border border-slate-200';
+                card.innerHTML = `
+                    <div class="bg-white p-4 sm:p-5 rounded-t-xl z-10 relative flex justify-between items-center cursor-pointer hover:bg-slate-50 transition" onclick="toggleSection('content_${section.id}', 'icon_${section.id}')">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1"><span class="bg-indigo-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm shrink-0">น้ำหนัก ${section.weight}</span><h2 class="text-base sm:text-lg font-bold text-slate-800 leading-tight">${section.title}</h2></div>
+                            <p class="text-[11px] sm:text-xs text-slate-500"><i class="fa-solid fa-bullseye mr-1"></i>${section.description}</p>
+                        </div>
+                        <div class="bg-slate-100 p-2 rounded-full h-8 w-8 flex items-center justify-center shrink-0 ml-2"><i id="icon_${section.id}" class="fa-solid fa-chevron-up text-slate-500 text-sm"></i></div>
+                    </div>` + contentHtml;
+                container.appendChild(card);
+            });
+
+            // Initialize Chart.js Instances
+            assessmentData.forEach(section => {
+                const ctx = document.getElementById(`chart_${section.id}`);
+                if(ctx) {
+                    if(sectionCharts[section.id]) sectionCharts[section.id].destroy();
+                    sectionCharts[section.id] = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: { datasets: [{ data: [0, 100], backgroundColor: ['#3b82f6', '#e2e8f0'], borderWidth: 0 }] },
+                        options: { cutout: '75%', responsive: true, maintainAspectRatio: true, plugins: { tooltip: { enabled: false } }, animation: { duration: 500 } }
+                    });
+                }
+            });
+        }
+
+        window.toggleSection = function(contentId, iconId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            content.classList.toggle('open');
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('fa-chevron-down');
+        };
+
+        window.scrollToSection = function(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
+        function createAssessmentItemHTML(item) {
+            return `
+            <div id="item_card_${item.id}" class="assessment-item bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-sm relative overflow-hidden transition-all duration-300" data-status="draft">
+                <div class="disabled-overlay flex items-center justify-center backdrop-blur-[1px]"></div>
+                
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded shadow-sm"><i class="fa-solid fa-hashtag mr-1"></i>${item.id.replace(/_/g, '.')}</span>
+                        <span id="badge_status_${item.id}" class="text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200 shadow-sm"><i class="fa-solid fa-pen mr-1"></i>DRAFT</span>
+                        <button onclick="printItem('${item.id}')" class="text-[10px] text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition px-2 py-1 border border-slate-200 rounded shadow-sm relative z-20" title="พิมพ์รายงานข้อนี้"><i class="fa-solid fa-print"></i> พิมพ์</button>
+                    </div>
+                    <span id="time_${item.id}" class="text-[9px] sm:text-[10px] text-slate-400 font-mono text-right leading-tight block"></span>
+                </div>
+                
+                <h4 class="font-bold text-slate-800 text-sm sm:text-[15px] mb-4 leading-snug"><i class="fa-solid fa-caret-right text-blue-500 mr-2"></i>${item.topic}</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-5">
+                    <div class="bg-blue-50 border border-blue-100 p-3 sm:p-3.5 rounded-lg flex items-start gap-3 shadow-inner">
+                        <div class="bg-blue-100 p-1.5 rounded text-blue-600 shrink-0 mt-0.5"><i class="fa-solid fa-award text-sm"></i></div>
+                        <div><span class="text-[10px] font-bold text-blue-800 block mb-1 uppercase tracking-wider">เป้าหมายระดับ 4</span><p class="text-[11px] sm:text-xs text-blue-900 leading-relaxed font-medium">${item.level4}</p></div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 p-3 sm:p-3.5 rounded-lg flex items-start gap-3 shadow-inner">
+                        <div class="bg-amber-100 p-1.5 rounded text-amber-600 shrink-0 mt-0.5"><i class="fa-solid fa-magnifying-glass text-sm"></i></div>
+                        <div><span class="text-[10px] font-bold text-amber-800 block mb-1 uppercase tracking-wider">วิธีประเมิน / แหล่งข้อมูล</span><p class="text-[11px] sm:text-xs text-amber-900 leading-relaxed">${item.methods}</p></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-100">
+                    <div class="flex flex-col h-full">
+                        <label class="text-xs font-bold text-slate-700 mb-2.5 block"><i class="fa-solid fa-chart-pie mr-1.5 text-slate-400"></i>1. ประเมินสถานะปัจจุบัน</label>
+                        <div class="flex bg-slate-200/70 p-1 rounded-lg border border-slate-200 shadow-inner mb-3">
+                            <div class="flex-1">
+                                <input type="radio" id="s_s_${item.id}" name="s_${item.id}" value="s" class="sr-only status-radio" onchange="debouncedSave('${item.id}', 'status', 's')">
+                                <label for="s_s_${item.id}" class="status-s cursor-pointer block text-center py-2 text-[11px] sm:text-xs font-bold rounded shadow-sm text-slate-500 hover:bg-slate-300 transition"><i class="fa-solid fa-check mr-1"></i>สมบูรณ์</label>
+                            </div>
+                            <div class="flex-1">
+                                <input type="radio" id="s_k_${item.id}" name="s_${item.id}" value="k" class="sr-only status-radio" onchange="debouncedSave('${item.id}', 'status', 'k')">
+                                <label for="s_k_${item.id}" class="status-k cursor-pointer block text-center py-2 text-[11px] sm:text-xs font-bold rounded shadow-sm text-slate-500 hover:bg-slate-300 transition"><i class="fa-solid fa-spinner mr-1"></i>กำลังทำ</label>
+                            </div>
+                            <div class="flex-1">
+                                <input type="radio" id="s_m_${item.id}" name="s_${item.id}" value="m" class="sr-only status-radio" onchange="debouncedSave('${item.id}', 'status', 'm')">
+                                <label for="s_m_${item.id}" class="status-m cursor-pointer block text-center py-2 text-[11px] sm:text-xs font-bold rounded shadow-sm text-slate-500 hover:bg-slate-300 transition"><i class="fa-solid fa-xmark mr-1"></i>ไม่มี</label>
+                            </div>
+                        </div>
+                        ${item.needsInterview ? `<label class="flex items-start gap-2 text-[11px] sm:text-xs text-indigo-700 bg-indigo-50/70 p-3 rounded-lg border border-indigo-200 cursor-pointer hover:bg-indigo-100 transition shadow-sm"><input type="checkbox" id="chk_int_${item.id}" class="mt-0.5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 shrink-0" onchange="debouncedSave('${item.id}', 'interviewReady', this.checked)"> <span class="font-medium leading-tight">เตรียมความพร้อมกลุ่มตัวอย่าง สำหรับให้ข้อมูลสัมภาษณ์เรียบร้อยแล้ว</span></label>` : ''}
+                        ${item.needsObservation ? `<label class="flex items-start gap-2 text-[11px] sm:text-xs text-emerald-700 bg-emerald-50/70 p-3 rounded-lg border border-emerald-200 mt-2 cursor-pointer hover:bg-emerald-100 transition shadow-sm"><input type="checkbox" id="chk_obs_${item.id}" class="mt-0.5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500 shrink-0" onchange="debouncedSave('${item.id}', 'observationReady', this.checked)"> <span class="font-medium leading-tight">จำลองการเดินตรวจสถานที่และ ปรับปรุงสภาพแวดล้อมเรียบร้อยแล้ว</span></label>` : ''}
+                        
+                        <div class="mt-auto pt-5">
+                            <button id="btn_submit_${item.id}" onclick="submitForReview('${item.id}')" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-[11px] sm:text-xs font-bold py-3 rounded-lg shadow-md transition flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> ยืนยันและส่งให้คณะกรรมการ (QA)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col">
+                        <label class="text-xs font-bold text-slate-700 mb-2.5 block"><i class="fa-solid fa-paperclip mr-1.5 text-slate-400"></i>2. แนบหลักฐานอ้างอิง</label>
+                        <div class="flex items-center gap-2 mb-3">
+                            <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-[11px] sm:text-xs font-medium py-2 px-3 rounded-lg shadow-sm transition shrink-0 flex items-center gap-1.5 h-[38px]">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> อัปโหลดไฟล์
+                                <input type="file" id="file_${item.id}" class="hidden" onchange="handleFileUpload(this, '${item.id}')">
+                            </label>
+                            <div class="flex flex-col flex-1 overflow-hidden bg-white border border-slate-300 px-3 py-2 rounded-lg h-[38px] justify-center shadow-sm">
+                                <span id="fname_${item.id}" class="text-[10px] sm:text-[11px] font-medium text-slate-600 truncate">ยังไม่ได้เลือกไฟล์</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center mb-3">
+                            <div class="h-px bg-slate-300 flex-1"></div>
+                            <span class="text-[9px] text-slate-400 font-bold px-2 uppercase tracking-widest shrink-0">หรือระบุลิงก์</span>
+                            <div class="h-px bg-slate-300 flex-1"></div>
+                        </div>
+
+                        <input type="text" id="link_${item.id}" maxlength="500" placeholder="วางลิงก์ Google Drive / เว็บไซต์ที่นี่" class="w-full text-[11px] sm:text-xs p-2.5 border border-slate-300 rounded-lg shadow-sm mb-3 focus:ring-2 focus:ring-blue-500 outline-none transition" oninput="debouncedSave('${item.id}', 'link', this.value)">
+                        
+                        <label class="text-[9px] sm:text-[10px] font-bold text-slate-500 mb-1.5 block uppercase tracking-wide">บันทึกย่อ / ระบุตู้เอกสารแฟ้มจัดเก็บ</label>
+                        <textarea id="note_${item.id}" maxlength="1000" rows="2" class="w-full text-[11px] sm:text-xs p-2.5 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none transition" oninput="debouncedSave('${item.id}', 'note', this.value)"></textarea>
+                    </div>
+                </div>
+
+                <div id="admin_area_${item.id}" class="mt-4 bg-pink-50 border border-pink-200 rounded-xl p-4 hidden relative z-20 shadow-inner">
+                    <h5 class="text-xs font-bold text-pink-800 mb-2.5"><i class="fa-solid fa-user-shield mr-1.5"></i>ส่วนสำหรับคณะกรรมการตรวจสอบ (QA)</h5>
+                    <div class="flex flex-col sm:flex-row gap-2 mb-2">
+                        <button onclick="adminAction('${item.id}', 'approved')" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2.5 rounded-lg shadow transition"><i class="fa-solid fa-check mr-1"></i> อนุมัติหลักฐาน</button>
+                        <button onclick="promptReject('${item.id}')" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-2.5 rounded-lg shadow transition"><i class="fa-solid fa-rotate-left mr-1"></i> ตีกลับให้แก้ไข</button>
+                    </div>
+                    <div id="reject_box_${item.id}" class="hidden mt-3 bg-white p-3 rounded-lg border border-red-200 shadow-sm">
+                        <textarea id="reject_msg_${item.id}" rows="2" placeholder="ระบุเหตุผลที่ต้องแก้ไข (เช่น สถิติยังไม่ถึงเกณฑ์ระดับ 4)..." class="w-full text-xs p-2.5 border border-red-300 rounded-md outline-none focus:ring-2 focus:ring-red-500 mb-2 resize-none"></textarea>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="document.getElementById('reject_box_${item.id}').classList.add('hidden')" class="text-[10px] px-4 py-1.5 bg-slate-200 text-slate-700 rounded-md font-bold hover:bg-slate-300 transition">ยกเลิก</button>
+                            <button onclick="adminAction('${item.id}', 'rejected', document.getElementById('reject_msg_${item.id}').value)" class="text-[10px] px-4 py-1.5 bg-red-600 text-white rounded-md font-bold shadow hover:bg-red-700 transition">ยืนยันการตีกลับ</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="reject_display_${item.id}" class="mt-4 bg-red-50 border-l-4 border-red-500 p-3.5 text-[11px] sm:text-xs text-red-800 rounded-r-lg shadow-sm hidden">
+                    <strong class="text-red-700"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>คณะกรรมการสั่งแก้ไข:</strong> <span id="reject_text_${item.id}" class="font-medium"></span>
+                </div>
+            </div>`;
+        }
+
+        function setupRealtimeListener() {
+            if(!db || !appId) return;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'assessments');
+            
+            unsubscribeSnapshot = onSnapshot(colRef, (snapshot) => {
+                updateConnectionStatus(true);
+                snapshot.docChanges().forEach((change) => {
+                    const data = change.doc.data();
+                    const itemId = change.doc.id;
+                    userDataStore[itemId] = data;
+                    if (change.type === "added" || change.type === "modified") { updateDOMForItem(itemId, data); }
+                });
+                calculateProgress();
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                updateConnectionStatus(false);
+                isOfflineMode = true; 
+                showToast("ขาดการเชื่อมต่อ Cloud สลับเป็นโหมด Offline", true);
+            });
+        }
+
+        function updateConnectionStatus(isOnline) {
+            const connStatus = document.getElementById('connectionStatus');
+            if(isOnline) {
+                connStatus.innerHTML = '<div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Cloud Sync';
+                connStatus.className = "flex items-center gap-1.5 text-[10px] bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-bold shadow-sm border border-green-200";
+            } else {
+                connStatus.innerHTML = '<i class="fa-solid fa-hard-drive"></i> Local Mode';
+                connStatus.className = "flex items-center gap-1.5 text-[10px] bg-slate-200 text-slate-600 px-2.5 py-1 rounded-full font-bold shadow-sm border border-slate-300";
+            }
+        }
+
+        function refreshAllDOM() {
+            Object.keys(userDataStore).forEach(itemId => { updateDOMForItem(itemId, userDataStore[itemId]); });
+        }
+
+        function updateDOMForItem(itemId, data) {
+            const card = document.getElementById(`item_card_${itemId}`);
+            if(!card) return;
+
+            const updateValIfUnfocused = (id, val, isRadio = false, isCheckbox = false) => {
+                const el = document.getElementById(id);
+                if(!el || document.activeElement === el) return;
+                if(isRadio) el.checked = (val === el.value);
+                else if(isCheckbox) el.checked = !!val;
+                else el.value = val || '';
+            };
+
+            updateValIfUnfocused(`s_s_${itemId}`, data.status, true);
+            updateValIfUnfocused(`s_k_${itemId}`, data.status, true);
+            updateValIfUnfocused(`s_m_${itemId}`, data.status, true);
+            updateValIfUnfocused(`link_${itemId}`, data.link);
+            updateValIfUnfocused(`note_${itemId}`, data.note);
+            if(data.interviewReady !== undefined) updateValIfUnfocused(`chk_int_${itemId}`, data.interviewReady, false, true);
+            if(data.observationReady !== undefined) updateValIfUnfocused(`chk_obs_${itemId}`, data.observationReady, false, true);
+            
+            const fnameEl = document.getElementById(`fname_${itemId}`);
+            if(fnameEl && !isUploading[itemId]) {
+                if(data.link && !data.fileName) {
+                    let safeLink = '#', linkText = 'เปิดลิงก์อ้างอิง';
+                    try {
+                        const urlObj = new URL(data.link);
+                        if(['http:', 'https:'].includes(urlObj.protocol)) { safeLink = urlObj.href; } else { linkText = 'ลิงก์ไม่ปลอดภัย'; }
+                    } catch(e) { linkText = 'รูปแบบลิงก์ไม่ถูกต้อง'; }
+                    fnameEl.innerHTML = `<a href="${escapeHTML(safeLink)}" target="_blank" class="text-blue-600 font-bold underline hover:text-blue-800 transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> ${linkText}</a>`;
+                } else { fnameEl.innerText = data.fileName || 'ยังไม่ได้เลือกไฟล์'; }
+            }
+            
+            const timeEl = document.getElementById(`time_${itemId}`);
+            if(timeEl) timeEl.innerHTML = `<i class="fa-regular fa-clock"></i> ${formatDate(data.lastUpdated)}<br><span class="opacity-60 text-[9px] uppercase tracking-wider">${escapeHTML(data.updatedByName || '')}</span>`;
+
+            applyWorkflowUI(itemId, data.workflow_status || 'draft', data.rejectComment);
+        }
+
+        function applyWorkflowUI(itemId, wfStatus, rejectComment) {
+            const card = document.getElementById(`item_card_${itemId}`);
+            const badge = document.getElementById(`badge_status_${itemId}`);
+            const adminArea = document.getElementById(`admin_area_${itemId}`);
+            const btnSubmit = document.getElementById(`btn_submit_${itemId}`);
+            const rejectDisplay = document.getElementById(`reject_display_${itemId}`);
+            
+            card.classList.remove('is-locked', 'border-green-400', 'border-amber-400', 'border-red-400', 'border-slate-200');
+            adminArea.classList.add('hidden');
+            rejectDisplay.classList.add('hidden');
+            if(btnSubmit) btnSubmit.style.display = 'flex';
+
+            let isLockedForUser = false;
+            card.setAttribute('data-status', wfStatus);
+
+            switch(wfStatus) {
+                case 'pending':
+                    badge.innerHTML = '<i class="fa-solid fa-hourglass-half mr-1"></i>รอตรวจสอบ';
+                    badge.className = "text-[9px] sm:text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200 shadow-sm";
+                    card.classList.add('border-amber-400');
+                    isLockedForUser = true;
+                    if(btnSubmit) btnSubmit.style.display = 'none';
+                    if(userRole === 'admin') adminArea.classList.remove('hidden');
+                    break;
+                case 'approved':
+                    badge.innerHTML = '<i class="fa-solid fa-shield-check mr-1"></i>อนุมัติแล้ว';
+                    badge.className = "text-[9px] sm:text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider bg-green-100 text-green-700 border border-green-300 shadow-sm";
+                    card.classList.add('border-green-400');
+                    isLockedForUser = true;
+                    if(btnSubmit) btnSubmit.style.display = 'none';
+                    break;
+                case 'rejected':
+                    badge.innerHTML = '<i class="fa-solid fa-rotate-left mr-1"></i>ต้องแก้ไข';
+                    badge.className = "text-[9px] sm:text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider bg-red-100 text-red-700 border border-red-200 shadow-sm";
+                    card.classList.add('border-red-400');
+                    rejectDisplay.classList.remove('hidden');
+                    document.getElementById(`reject_text_${itemId}`).innerText = rejectComment || 'ไม่มีรายละเอียด';
+                    break;
+                default:
+                    badge.innerHTML = '<i class="fa-solid fa-pen-nib mr-1"></i>ฉบับร่าง';
+                    badge.className = "text-[9px] sm:text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200 shadow-sm";
+                    card.classList.add('border-slate-200');
+                    break;
+            }
+
+            if (userRole === 'admin') { card.classList.add('is-locked'); } 
+            else if (isLockedForUser) { card.classList.add('is-locked'); }
+        }
+
+        window.debouncedSave = function(itemId, key, value) {
+            if(userRole === 'admin') return; 
+            
+            if(!userDataStore[itemId]) userDataStore[itemId] = {};
+            userDataStore[itemId][key] = value;
+            
+            if(debounceTimers[`${itemId}_${key}`]) clearTimeout(debounceTimers[`${itemId}_${key}`]);
+            
+            debounceTimers[`${itemId}_${key}`] = setTimeout(() => {
+                saveData(itemId, { 
+                    [key]: value,
+                    workflow_status: userDataStore[itemId].workflow_status === 'rejected' ? 'draft' : (userDataStore[itemId].workflow_status || 'draft') 
+                });
+            }, 800);
+        };
+
+        async function saveData(itemId, updateData) {
+            const payload = { ...updateData, lastUpdated: new Date().toISOString(), updatedBy: currentUser.uid, updatedByName: userName };
+            
+            if(!userDataStore[itemId]) userDataStore[itemId] = {};
+            userDataStore[itemId] = { ...userDataStore[itemId], ...payload };
+
+            // ส่งข้อมูลไปบันทึกที่ Google Sheets แบบ Real-time (ถ้ามีการตั้งค่า URL ไว้)
+            if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL !== "") {
+                fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // ทำงานอยู่เบื้องหลัง ไม่รบกวนหน้าเว็บ
+                    body: JSON.stringify({
+                        action: 'saveData',
+                        itemId: itemId,
+                        data: payload,
+                        userName: userName
+                    })
+                }).catch(e => console.warn("GAS Sync Error"));
+            }
+
+            if(isOfflineMode) {
+                localStorage.setItem('royalAwardV6Offline', JSON.stringify(userDataStore));
+                updateDOMForItem(itemId, userDataStore[itemId]);
+                calculateProgress();
+                showToast("บันทึกออฟไลน์สำเร็จ");
+                return;
+            }
+
+            if(!db || !currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'assessments', itemId);
+                await setDoc(docRef, payload, { merge: true });
+                showToast("บันทึกบน Cloud สำเร็จ");
+            } catch (error) {
+                console.error("Save Error:", error);
+                isOfflineMode = true; updateConnectionStatus(false);
+                saveData(itemId, updateData);
+            }
+        }
+
+        window.submitForReview = function(itemId) {
+            const data = userDataStore[itemId] || {};
+            if(!data.status) { showModal("ข้อมูลไม่ครบถ้วน", "กรุณาประเมินสถานะปัจจุบัน (สมบูรณ์/กำลังทำ/ไม่มี) ก่อนส่งตรวจ", 'warning'); return; }
+            
+            const hasLink = data.link && data.link.trim() !== '';
+            const hasNote = data.note && data.note.trim() !== '';
+            const hasFile = !!data.fileName;
+
+            if(!hasLink && !hasFile && !hasNote) { showModal("ข้อมูลไม่ครบถ้วน", "กรุณาแนบหลักฐานอ้างอิง หรือ ระบุบันทึกย่อเพื่ออ้างอิงแหล่งเก็บเอกสาร", 'warning'); return; }
+            
+            showModal("ยืนยันการส่งตรวจ", "เมื่อส่งข้อมูลแล้ว คุณจะไม่สามารถแก้ไขได้จนกว่ากรรมการ (QA) จะตีกลับ ยืนยันการส่งตรวจหรือไม่?", "info", () => {
+                saveData(itemId, { workflow_status: 'pending' });
+            }, true);
+        };
+
+        window.promptReject = function(itemId) { document.getElementById(`reject_box_${itemId}`).classList.remove('hidden'); };
+
+        window.adminAction = function(itemId, action, comment = '') {
+            if(action === 'rejected' && !comment.trim()) { showModal("ข้อผิดพลาด", "กรุณาระบุเหตุผลที่ต้องตีกลับให้แก้ไข", "warning"); return; }
+            saveData(itemId, { workflow_status: action, rejectComment: action === 'rejected' ? comment : '' });
+            if(action === 'rejected') {
+                document.getElementById(`reject_box_${itemId}`).classList.add('hidden');
+                document.getElementById(`reject_msg_${itemId}`).value = '';
+            }
+        };
+
+        window.handleFileUpload = async function(input, itemId) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (file.size > 20 * 1024 * 1024) {
+                showModal("ขนาดไฟล์เกินกำหนด", "กรุณาเลือกไฟล์ขนาดไม่เกิน 20MB หากเป็นวิดีโอ ให้อัปโหลดเข้า Google Drive ส่วนตัวแล้วนำลิงก์มาวางครับ", "error");
+                input.value = ''; return;
+            }
+
+            const fnameEl = document.getElementById(`fname_${itemId}`);
+            fnameEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-500"></i> กำลังอัปโหลด...`;
+            isUploading[itemId] = true;
+
+            try {
+                // 1. ตรวจสอบและอัปโหลดไป Google Drive ผ่าน Apps Script ก่อนเป็นอันดับแรก
+                if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL !== "") {
+                    const base64Data = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(file);
+                    });
+
+                    const response = await fetch(GAS_WEB_APP_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'upload',
+                            fileData: base64Data,
+                            fileName: file.name,
+                            mimeType: file.type,
+                            itemId: itemId,
+                            userName: userName
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        // บันทึก URL ที่ได้จาก Drive ลงฐานข้อมูล
+                        await saveData(itemId, { fileName: file.name, storagePath: 'GoogleDrive', link: result.url, workflow_status: userDataStore[itemId]?.workflow_status || 'draft' });
+                        isUploading[itemId] = false; 
+                        input.value = '';
+                        return; // สิ้นสุดการอัปโหลด
+                    } else { 
+                        throw new Error(result.message); 
+                    }
+                }
+
+                // 2. Fallback: หากไม่ได้ตั้งค่า Google Drive ให้ทำงานผ่าน Firebase Storage เหมือนเดิม
+                if(isOfflineMode || !storage) throw new Error("Offline Mode Active");
+                
+                if(userDataStore[itemId]?.storagePath && userDataStore[itemId].storagePath !== 'GoogleDrive') {
+                    try { const oldRef = ref(storage, userDataStore[itemId].storagePath); await deleteObject(oldRef); } catch(e){}
+                }
+
+                const storagePath = `artifacts/${appId}/public/storage/${itemId}_${Date.now()}_${file.name}`;
+                const storageRef = ref(storage, storagePath);
+                await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(storageRef);
+                
+                await saveData(itemId, { fileName: file.name, storagePath: storagePath, link: downloadURL, workflow_status: userDataStore[itemId]?.workflow_status || 'draft' });
+            } catch (error) {
+                console.warn("Storage upload fallback:", error);
+                await saveData(itemId, { fileName: file.name, workflow_status: userDataStore[itemId]?.workflow_status || 'draft' });
+                showToast("บันทึกชื่อไฟล์สำเร็จ (ไม่ได้ส่งขึ้นคลาวด์ เนื่องจากอยู่ในโหมด Offline)", false);
+            } finally {
+                isUploading[itemId] = false; input.value = '';
+            }
+        };
+
+        function calculateProgress() {
+            let totalItems = 0, totalCompleted = 0;
+            
+            assessmentData.forEach(section => {
+                let secTotal = 0, secComp = 0;
+                section.subsections.forEach(sub => {
+                    sub.items.forEach(item => {
+                        totalItems++; secTotal++;
+                        const data = userDataStore[item.id];
+                        if(data && (data.workflow_status === 'approved' || data.workflow_status === 'pending' || data.status === 's')) {
+                            totalCompleted++; secComp++;
+                        }
+                    });
+                });
+                
+                const secPct = secTotal === 0 ? 0 : Math.round((secComp/secTotal)*100);
+                const sbProg = document.getElementById(`sb_prog_${section.id}`);
+                const sbPct = document.getElementById(`sb_pct_${section.id}`);
+                
+                // Update Donut Charts
+                if(sectionCharts[section.id]) {
+                    sectionCharts[section.id].data.datasets[0].data = [secPct, 100 - secPct];
+                    sectionCharts[section.id].data.datasets[0].backgroundColor = [secPct === 100 ? '#10b981' : '#3b82f6', '#e2e8f0'];
+                    sectionCharts[section.id].update();
+                    const chartPctLabel = document.getElementById(`chart_pct_${section.id}`);
+                    if(chartPctLabel) {
+                        chartPctLabel.innerText = `${secPct}%`;
+                        chartPctLabel.className = secPct === 100 ? "text-xs sm:text-sm font-bold text-emerald-600" : "text-xs sm:text-sm font-bold text-slate-700";
+                    }
+                }
+
+                if(sbProg && sbPct) {
+                    sbProg.style.width = `${secPct}%`; sbPct.innerText = `${secPct}%`;
+                    sbProg.className = secPct === 100 ? "bg-gradient-to-r from-green-400 to-emerald-500 h-1.5 rounded-full transition-all" : "bg-blue-500 h-1.5 rounded-full transition-all";
+                    sbPct.className = secPct === 100 ? "text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full shadow-sm" : "text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full shadow-sm";
+                }
+            });
+
+            const overPct = totalItems === 0 ? 0 : Math.round((totalCompleted/totalItems)*100);
+            document.getElementById('overall-progress-text').innerText = `${overPct}%`;
+            document.getElementById('overall-progress-bar').style.width = `${overPct}%`;
+        }
+
+        window.filterItems = function(statusFilter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = "filter-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition";
+            });
+            document.getElementById(`flt_${statusFilter}`).className = "filter-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-800 text-white shadow-sm transition";
+
+            document.querySelectorAll('.assessment-item').forEach(el => {
+                if(statusFilter === 'all' || el.getAttribute('data-status') === statusFilter) { el.parentElement.parentElement.style.display = 'block'; el.style.display = 'block'; } 
+                else { el.style.display = 'none'; }
+            });
+            
+            document.querySelectorAll('.accordion-content > div').forEach(sub => {
+                let hasVisible = Array.from(sub.querySelectorAll('.assessment-item')).some(item => item.style.display !== 'none');
+                sub.style.display = hasVisible ? 'block' : 'none';
+            });
+        };
+
+        window.printItem = function(itemId) {
+            let foundItem = null;
+            assessmentData.forEach(sec => sec.subsections.forEach(sub => sub.items.forEach(item => {
+                if (item.id === itemId) foundItem = item;
+            })));
+            
+            if (!foundItem) return;
+
+            const data = userDataStore[itemId] || {};
+            
+            let statusText = data.status === 's' ? '<span style="color: #16a34a;">สมบูรณ์ (พร้อมรับการประเมิน)</span>' : data.status === 'k' ? '<span style="color: #d97706;">กำลังดำเนินการ</span>' : data.status === 'm' ? '<span style="color: #dc2626;">ไม่มีหลักฐาน</span>' : '<span style="color: #94a3b8;">ยังไม่ได้ประเมิน</span>';
+            let wfText = data.workflow_status === 'approved' ? '<span style="color: #16a34a; font-weight: bold;">อนุมัติแล้ว (ผ่านเกณฑ์)</span>' : data.workflow_status === 'pending' ? '<span style="color: #d97706;">รอตรวจสอบจากคณะกรรมการ</span>' : data.workflow_status === 'rejected' ? `<span style="color: #dc2626; font-weight: bold;">ต้องแก้ไข</span> <br><span style="font-size: 12px;">(เหตุผล: ${data.rejectComment || '-'})</span>` : '<span style="color: #94a3b8;">ฉบับร่าง (Draft)</span>';
+            
+            let safeLink = '-';
+            if (data.link) {
+                try {
+                    const urlObj = new URL(data.link);
+                    if(['http:', 'https:'].includes(urlObj.protocol)) safeLink = `<a href="${urlObj.href}" target="_blank" style="color: #2563eb; text-decoration: underline;">${urlObj.href}</a>`;
+                } catch(e) {}
+            }
+            
+            let html = `
+            <div style="font-family: 'Prompt', sans-serif; line-height: 1.6; color: #334155; padding: 10px;">
+                <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1e293b; padding-bottom: 15px;">
+                    <h2 style="font-size: 22px; font-weight: bold; margin: 0;">รายงานผลการประเมินตนเองรายข้อ</h2>
+                    <p style="margin: 5px 0 0 0; color: #64748b;">สถานศึกษารางวัลพระราชทาน (ประจำปี ๒๕๖๗)</p>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <span style="background-color: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; color: #475569;">รหัสตัวชี้วัด: ${foundItem.id.replace(/_/g, '.')}</span>
+                    <h3 style="font-size: 18px; font-weight: bold; margin: 12px 0 0 0; color: #0f172a;">${foundItem.topic}</h3>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold; width: 25%; color: #1e40af;">เป้าหมายระดับ 4</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; color: #334155;">${foundItem.level4}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold; color: #b45309;">วิธีประเมิน / แหล่งข้อมูล</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; color: #334155;">${foundItem.methods}</td>
+                    </tr>
+                </table>
+
+                <h4 style="font-size: 16px; font-weight: bold; margin-bottom: 12px; border-bottom: 2px dashed #cbd5e1; padding-bottom: 8px; color: #0f172a;">ผลการดำเนินงานของสถานศึกษา</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold; width: 25%;">สถานะความพร้อม</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1;">${statusText}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold;">การตรวจสอบ (QA)</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1;">${wfText}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold;">ไฟล์อ้างอิง</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1;">${escapeHTML(data.fileName) || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold;">ลิงก์เอกสาร</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; word-break: break-all;">${safeLink}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold;">บันทึกย่อ / สารบัญ</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; white-space: pre-wrap;">${escapeHTML(data.note) || '-'}</td>
+                    </tr>
+                    ${foundItem.needsInterview ? `<tr><td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold;">การเตรียมสัมภาษณ์</td><td style="padding: 12px; border: 1px solid #cbd5e1;">${data.interviewReady ? '<span style="color: #16a34a;"><i class="fa-solid fa-check"></i> เตรียมความพร้อมแล้ว</span>' : '<span style="color: #94a3b8;">ยังไม่ได้ดำเนินการ</span>'}</td></tr>` : ''}
+                    ${foundItem.needsObservation ? `<tr><td style="padding: 12px; border: 1px solid #cbd5e1; background-color: #f8fafc; font-weight: bold;">การเตรียมสังเกตการณ์</td><td style="padding: 12px; border: 1px solid #cbd5e1;">${data.observationReady ? '<span style="color: #16a34a;"><i class="fa-solid fa-check"></i> จำลองและปรับปรุงแล้ว</span>' : '<span style="color: #94a3b8;">ยังไม่ได้ดำเนินการ</span>'}</td></tr>` : ''}
+                </table>
+                
+                <div style="font-size: 12px; color: #64748b; text-align: right; margin-top: 40px;">
+                    <p style="margin: 0 0 4px 0;">ปรับปรุงข้อมูลล่าสุดเมื่อ: ${formatDate(data.lastUpdated)}</p>
+                    <p style="margin: 0;">ผู้รับผิดชอบการบันทึก: ${escapeHTML(data.updatedByName) || '-'}</p>
+                </div>
+            </div>`;
+
+            document.getElementById('printContent').innerHTML = html;
+            document.getElementById('printModalTitle').innerHTML = `<i class="fa-solid fa-file-contract text-blue-600 mr-2"></i>รายงานรายข้อ (${foundItem.id.replace(/_/g, '.')})`;
+            document.getElementById('printModal').classList.add('active');
+        };
+
+        window.generateReport = function() {
+            document.getElementById('printModalTitle').innerHTML = `<i class="fa-solid fa-file-invoice text-blue-600 mr-2"></i>รายงานสรุปภาพรวม 88 ตัวชี้วัด`;
+            let html = '<div class="space-y-4">';
+            assessmentData.forEach(section => {
+                html += `<div class="mb-6"><h4 class="font-bold text-lg text-slate-800 border-b-2 border-slate-800 pb-1 mb-3">${section.title}</h4>
+                         <table class="w-full text-left border-collapse"><thead class="bg-slate-100 text-xs text-slate-600"><tr><th class="p-2 border border-slate-300 w-16">รหัส</th><th class="p-2 border border-slate-300">ตัวชี้วัด (ระดับ 4)</th><th class="p-2 border border-slate-300 w-24 text-center">ประเมิน</th><th class="p-2 border border-slate-300 w-24 text-center">สถานะ</th></tr></thead><tbody class="text-xs">`;
+                
+                section.subsections.forEach(sub => {
+                    sub.items.forEach(item => {
+                        const data = userDataStore[item.id] || {};
+                        let statusText = data.status === 's' ? '<span class="text-green-600">สมบูรณ์</span>' : data.status === 'k' ? '<span class="text-orange-500">กำลังทำ</span>' : data.status === 'm' ? '<span class="text-red-500">ไม่มี</span>' : '<span class="text-slate-400">-</span>';
+                        let wfText = data.workflow_status === 'approved' ? '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded">ผ่าน</span>' : data.workflow_status === 'pending' ? '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">รอตรวจ</span>' : data.workflow_status === 'rejected' ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded">แก้</span>' : '<span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded">ร่าง</span>';
+                        
+                        html += `<tr><td class="p-2 border border-slate-300 font-mono text-slate-500">${item.id.replace(/_/g, '.')}</td>
+                                     <td class="p-2 border border-slate-300">${item.topic}</td>
+                                     <td class="p-2 border border-slate-300 text-center font-bold">${statusText}</td>
+                                     <td class="p-2 border border-slate-300 text-center font-bold">${wfText}</td></tr>`;
+                    });
+                });
+                html += `</tbody></table></div>`;
+            });
+            html += '</div>';
+            
+            document.getElementById('printContent').innerHTML = html;
+            document.getElementById('printModal').classList.add('active');
+        };
+
+        // --- Registration & Forgot Password Logic ---
+        window.openRegisterModal = function() {
+            const indList = document.getElementById('regIndicators');
+            indList.innerHTML = '';
+            assessmentData.forEach(sec => {
+                let secHtml = `<div class="font-bold text-xs mt-3 mb-1 text-slate-700 border-b border-slate-200 pb-1">${sec.title.split(':')[0]}</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mb-2">`;
+                sec.subsections.forEach(sub => {
+                    sub.items.forEach(item => {
+                        secHtml += `<label class="text-[10px] flex items-center gap-1.5 cursor-pointer hover:bg-blue-50 p-1.5 rounded transition"><input type="checkbox" name="regInd" value="${item.id}" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"> ${item.id.replace(/_/g, '.')}</label>`;
+                    });
+                });
+                secHtml += `</div>`;
+                indList.innerHTML += secHtml;
+            });
+            document.getElementById('registerModal').classList.add('active');
+        };
+
+        window.closeRegisterModal = function() { document.getElementById('registerModal').classList.remove('active'); };
+
+        window.submitRegistration = async function() {
+            const fullname = document.getElementById('regFullname').value.trim();
+            const position = document.getElementById('regPosition').value.trim();
+            const dept = document.getElementById('regDept').value.trim();
+            const specialDuty = document.getElementById('regSpecialDuty').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            
+            const selectedInds = Array.from(document.querySelectorAll('input[name="regInd"]:checked')).map(cb => cb.value);
+
+            if(!fullname || !position || !dept || !email || !phone || !username || !password) {
+                alert('กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วน'); return;
+            }
+
+            const payload = { fullname, position, dept, specialDuty, email, phone, username, password, indicators: selectedInds, createdAt: new Date().toISOString() };
+
+            // ส่งข้อมูลสมัครสมาชิกไปเก็บสำรองที่ Google Sheets (ถ้าตั้งค่า URL ไว้)
+            if (typeof GAS_WEB_APP_URL !== 'undefined' && GAS_WEB_APP_URL !== "") {
+                fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'register',
+                        data: payload
+                    })
+                }).catch(e => console.warn("GAS Register Sync Error"));
+            }
+
+            // Save to Firestore for Admin (if online)
+            if(!isOfflineMode && db) {
+                try {
+                    const docRef = doc(collection(db, 'artifacts', appId, 'public', 'users_registration'), username);
+                    await setDoc(docRef, payload);
+                } catch(e) { console.error("Firestore user save error", e); }
+            }
+
+            // Save to LocalStorage for Login
+            let users = JSON.parse(localStorage.getItem('royalAwardUsers')) || [];
+            // Check duplicate
+            if(users.some(u => u.username === username)) { alert('Username นี้มีผู้ใช้งานแล้ว'); return; }
+            users.push(payload);
+            localStorage.setItem('royalAwardUsers', JSON.stringify(users));
+
+            closeRegisterModal();
+            showModal('สมัครเข้าใช้งานสำเร็จ', 'ข้อมูลของคุณถูกส่งไปยัง Admin เรียบร้อยแล้ว คุณสามารถเข้าสู่ระบบด้วย Username และ Password ที่กำหนดไว้ได้ทันที', 'info');
+        };
+
+        window.openForgotPassModal = function() { document.getElementById('forgotPassModal').classList.add('active'); };
+        window.closeForgotPassModal = function() { document.getElementById('forgotPassModal').classList.remove('active'); };
+        window.submitForgotPass = function() {
+            const input = document.getElementById('forgotInput').value.trim();
+            if(!input) return;
+            closeForgotPassModal();
+            showModal('ส่งคำร้องสำเร็จ', 'ระบบได้บันทึกคำร้องและส่งไปยังผู้ดูแลระบบ (Admin) แล้ว กรุณารอการติดต่อกลับผ่านช่องทางที่คุณได้ลงทะเบียนไว้', 'info');
+        };
+
+    </script>
+</body>
+</html>
         <div class="modal-box bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 relative overflow-hidden hide-scroll">
             <div id="modalHeader" class="h-2 w-full absolute top-0 left-0 bg-amber-500"></div>
             <div class="text-center mt-2">
